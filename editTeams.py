@@ -3,9 +3,16 @@ from constants import BASEURL
 import sqlite3
 
 def create_team():
+    version = choose_version()
+    if version is None:
+        return
+    
+def choose_version():
     valid = False
     versions = get_all_version_names()
+    versions.append("other")
     while not valid:
+        print_list(versions)
         version = input("Please enter the game version for this team (eg. red): ")
         version = version.lower()
         if version not in versions:
@@ -15,6 +22,14 @@ def create_team():
         else:
             print(f"Creating a new team for Pokemon {version} version!")
             valid = True
+            
+def print_list(list):
+    for i in range(len(list)):
+        if i % 5 is 0:
+            print("")
+        print(f"{list[i]} ", end="")
+        
+        
 
 def edit_team():
     pass
