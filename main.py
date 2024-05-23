@@ -1,8 +1,7 @@
-import sqlite3
 from editTeams import create_team
-
-connection = sqlite3.connect("mypokemondb")
+from dbInteraction import init_database
 
 
 if __name__ == "__main__":
-    create_team()
+    connection = init_database()
+    create_team(connection)
