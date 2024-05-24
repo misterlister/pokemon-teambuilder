@@ -16,7 +16,6 @@ def get_player_names(connection):
 
 def get_team_names_from_version(connection, version):
     cursor = connection.cursor()
-    print(version)
     cursor.execute("SELECT team_name FROM teams WHERE version = ?", (version,))
     team_names = cursor.fetchall()
     return team_names
