@@ -1,5 +1,9 @@
 import unittest
 
+from editTeams import (
+    get_close_string
+)
+
 from apiInteraction import (
     get_all_version_names,
     get_all_pokemon_in_dex,
@@ -80,6 +84,55 @@ class Tests(unittest.TestCase):
                 "substitute"
             ]
         )
+        
+    def test_get_close_string_1(self):
+        string = "pikochu"
+        string_list = ["pichu", "pikachu", "raichu"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, "pikachu"
+        )
+        
+    def test_get_close_string_2(self):
+        string = "pokocho"
+        string_list = ["pichu", "pikachu", "raichu"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, "pikachu"
+        )
+        
+    def test_get_close_string_3(self):
+        string = "tokocho"
+        string_list = ["pichu", "pikachu", "raichu"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, None
+        )
+    
+    def test_get_close_string_4(self):
+        string = ""
+        string_list = ["pichu", "pikachu", "raichu"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, None
+        ) 
+        
+    def test_get_close_string_4(self):
+        string = "pikachupikachupi"
+        string_list = ["pichu", "pikachu", "raichu"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, None
+        ) 
+        
+    def test_get_close_string_5(self):
+        string = "zapcannon"
+        string_list = ["zap-cannon"]
+        close_string = get_close_string(string, string_list)
+        self.assertEqual(
+            close_string, "zap-cannon"
+        ) 
+        
     
 if __name__ == "__main__":
     unittest.main()
