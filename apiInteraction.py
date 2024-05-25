@@ -1,5 +1,9 @@
 import requests
-from constants import BASEURL
+from constants import (
+    BASEURL,
+    XD_MONS,
+    COLOSSEUM_MONS
+    )
 
 def get_all_version_names():
     url = f"{BASEURL}version"
@@ -16,6 +20,10 @@ def get_all_version_names():
 def get_all_pokemon_in_dex(version):
     if version == "other":
         pokedex_url = f"{BASEURL}pokedex/1"
+    elif version == "colosseum":
+        return COLOSSEUM_MONS
+    elif version == "xd":
+        return XD_MONS
     else:
         region_url = f"{BASEURL}version/{version}"
         response = requests.get(region_url)
@@ -45,3 +53,4 @@ def get_all_pokemon_in_dex(version):
         return pokemon_list
     else:
         print(f"Failed to fetch data: {response.status_code}")
+        
