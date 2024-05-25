@@ -4,7 +4,8 @@ from dbInteraction import (
     )
 from apiInteraction import (
     get_all_version_names,
-    get_all_pokemon_in_dex
+    get_all_pokemon_in_dex,
+    get_pokemon_moves
 )
 
 def create_team(connection):
@@ -15,6 +16,8 @@ def create_team(connection):
     teamName = choose_team_name(connection, version)
     if teamName is None: return
     pokemon_team = choose_pokemon(version)
+    if confirm("Would you like to set the team's movesets?"):
+        select_movesets(pokemon_team, version)
     
 def get_player_name(connection):
     valid = False
@@ -28,14 +31,11 @@ def get_player_name(connection):
             if not confirm("Would you like to try again?"):
                 return None
         else:
-            #if confirm(f"You entered the name: '{team_name}'. Is this correct?"):
-                #print("")
             return team_name
     
 def choose_version():
     valid = False
     versions = get_all_version_names()
-    versions.append("other")
     while not valid:
         version = input("Please enter the game version for this team (eg. red). Type 'list' to see all options: ")
         version = version.lower()
@@ -47,8 +47,6 @@ def choose_version():
                 if not confirm("Would you like to try again?"):
                     return None
         else:
-            #if confirm(f"You selected: '{version}' version. Is this correct?"):
-                #print("")
             return version
     
 def choose_team_name(connection, version):
@@ -63,8 +61,6 @@ def choose_team_name(connection, version):
             if not confirm("Would you like to try again?"):
                 return None
         else:
-            #if confirm(f"You entered the name: '{team_name}'. Is this correct?"):
-                #print("")
             return team_name
             
 def choose_pokemon(version):
@@ -79,23 +75,43 @@ def choose_pokemon(version):
             if pokemon_name == "list":
                 print(f"Available Pokemon in Pokemon {version} version:\n")
                 print_list(available_pokemon)
-                print("\nTeam:")
-                print_list(team)
-                print("")
+                print_team(team)
             else:
                 print(f"Sorry. That is not a valid Pokemon in {version} version.")
                 if not confirm("Would you like to try again?"):
                     return None
         else:
-            #if confirm(f"You selected: '{pokemon_name}'. Is this correct?"):
-                #print("")
-            team.append(pokemon_name)
+            team.append({"name": pokemon_name})
             party_full += 1
             if party_full == entries:
-                print("\nTeam:")
-                print_list(team)
-                print("")
+                print_team(team)
     return team
+
+def select_movesets(team, version):
+    for pokemon in team:
+        name = pokemon["name"]
+        pokemon["moves"] = []
+        print(f"Selecting moves for {name}")
+        available_moves = get_pokemon_moves(version, name)
+        max_moves = min(len(available_moves), 4)
+        i = 1
+        while i < max_moves + 1:
+            selected_move = input(f"Please enter move #{i} (eg. hydro-pump). Type 'list' to see all options: ")
+            selected_move = selected_move.lower()
+            if selected_move not in available_moves:
+                if selected_move == "list":
+                    print(f"Available moves for {name} in {version} version:\n")
+                    print_list(available_moves)
+                else:
+                    print(f"Sorry. That is not a valid move for {name} in {version} version.")
+                    if not confirm("Would you like to try again?"):
+                        return
+            else:
+                pokemon["moves"].append(selected_move)
+                i += 1
+        print(f"{name}'s moveset:")
+        print_list(pokemon["moves"])
+    return
         
 def edit_team():
     pass
@@ -125,6 +141,13 @@ def confirm(question):
         if response == "no" or response == 'n':
             return False
         print("Invalid response, please try again.")
+        
+def print_team(team):
+    pokemon_names = []
+    for pokemon in team:
+        pokemon_names.append(pokemon["name"])
+    print("\nTeam:")
+    print_list(pokemon_names)
         
 def select_number(low, high, question):
     valid = False
