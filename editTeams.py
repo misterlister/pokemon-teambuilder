@@ -26,10 +26,6 @@ def get_player_name(connection):
         team_name = input("Please enter the name of the player who will use this team (eg. 'Ash'). Type 'list' to see all existing names: ")
         if team_name == "list":
                 print_list(existing_names)
-        elif team_name in existing_names:
-            print("Sorry. That team name already exists for this game.")
-            if not confirm("Would you like to try again?"):
-                return None
         else:
             return team_name
     
@@ -43,7 +39,11 @@ def choose_version():
             if version == "list":
                 print_list(versions)
             else:
-                print("Sorry. That is not a valid Pokemon game version.")
+                close_string = get_close_string(version, versions)
+                if close_string != None:
+                    if confirm(f"Did you mean '{close_string}'?"):
+                        return close_string
+                print("Sorry, '{version}' is not a valid Pokemon game version.")
                 if not confirm("Would you like to try again?"):
                     return None
         else:
@@ -57,7 +57,7 @@ def choose_team_name(connection, version):
         if team_name == "list":
                 print_list(existing_names)
         elif team_name in existing_names:
-            print("Sorry. That team name already exists for this game.")
+            print("Sorry, that team name already exists for this game.")
             if not confirm("Would you like to try again?"):
                 return None
         else:
@@ -77,7 +77,15 @@ def choose_pokemon(version):
                 print_list(available_pokemon)
                 print_team(team)
             else:
-                print(f"Sorry. That is not a valid Pokemon in {version} version.")
+                close_string = get_close_string(pokemon_name, available_pokemon)
+                if close_string != None:
+                    if confirm(f"Did you mean '{close_string}'?"):
+                        team.append({"name": close_string})
+                        party_full += 1
+                        if party_full == entries:
+                            print_team(team)
+                        continue
+                print(f"Sorry, '{pokemon_name}' is not a valid Pokemon in {version} version.")
                 if not confirm("Would you like to try again?"):
                     return None
         else:
@@ -103,7 +111,13 @@ def select_movesets(team, version):
                     print(f"Available moves for {name} in {version} version:\n")
                     print_list(available_moves)
                 else:
-                    print(f"Sorry. That is not a valid move for {name} in {version} version.")
+                    close_string = get_close_string(selected_move, available_moves)
+                    if close_string != None:
+                        if confirm(f"Did you mean '{close_string}'?"):
+                            pokemon["moves"].append(close_string)
+                            i += 1
+                            continue
+                    print(f"Sorry, '{selected_move}' is not a valid move for {name} in {version} version.")
                     if not confirm("Would you like to try again?"):
                         return
             else:
@@ -159,7 +173,46 @@ def select_number(low, high, question):
                 return input_num
         print(f"Please enter a number between {low} and {high}")
 
-                
+def get_close_string(orig_string, string_list):
+    closest_match = None
+    max_matches = 0
+    orig_len = len(orig_string)
+    if orig_len == 0: return None
+    for string in string_list:
+        string_len = len(string)
+        if string_len > 0:
+            i = 0
+            match_count = 0
+            
+            for j in range (string_len):
+                matched = False
+                if i >= orig_len: break
+                if orig_string[i] == string[j]:
+                    i += 1
+                    matched = True
+                if not matched and i + 1 < orig_len:
+                    if orig_string[i+1] == string[j]:
+                        i += 2
+                        matched = True
+                if not matched and j + 1 < string_len:
+                    if orig_string[i] == string[j+1]:
+                        i += 1
+                        j += 1
+                        matched = True
+                if matched: match_count += 1
+                else: i += 1
+                        
+            if match_count > max_matches:
+                max_matches = match_count
+                closest_match = string
+    if max_matches > (len(closest_match)) / 2:
+        return closest_match
+    return None
+
+        
+                        
+            
+        
 
 
         
