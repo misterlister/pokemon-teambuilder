@@ -5,20 +5,34 @@ from constants import (
     COLOSSEUM_MONS
     )
 
+from textManip import (
+    convert_generation_to_num
+    )
+
 def get_all_version_names():
     url = f"{BASEURL}version"
+    version_names = get_all_version_names_r(url)
+    if version_names != None:
+        version_names.append("other")
+    return version_names
+    
+    
+def get_all_version_names_r(url: str) -> list:
     response = requests.get(url)
+    version_names = []
     
     if response.status_code == 200:
         data = response.json()
         versions = data["results"]
         version_names = [version["name"] for version in versions]
-        version_names.append("other")
+        if data["next"] != None:
+            version_names.extend(get_all_version_names_r(data["next"]))
         return version_names
     else:
         print(f"Failed to fetch data: {response.status_code}")
+        return None
         
-def get_all_pokemon_in_dex(version):
+def get_all_pokemon_in_dex(version: str):
     if version == "other":
         pokedex_url = f"{BASEURL}pokedex/1"
     elif version == "colosseum":
@@ -95,3 +109,45 @@ def move_version_is_valid(move_version_groups, version_group):
         if entry["version_group"]["name"] == version_group:
             return True
     return False
+
+def get_version_generation(version):
+    version_group = get_version_group(version)
+    url = f"{BASEURL}version-group/{version_group}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        generation = data["generation"]["name"]
+        gen_num = convert_generation_to_num(generation)
+        return gen_num
+    else:
+        print(f"Failed to fetch data: {response.status_code}")
+        return None
+    
+def get_all_types(version):
+    gen_num = get_version_generation(version)
+    url = f"{BASEURL}type"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        type_data = data["results"]
+        types = [type["name"] for type in type_data]
+        types.remove("unknown")
+        if gen_num < 9:
+            types.remove("unknown")
+        if gen_num < 6:
+            types.remove("fairy")
+        if gen_num < 2:
+            types.remove("steel")
+            types.remove("dark")
+        return types
+    else:
+        print(f"Failed to fetch data: {response.status_code}")
+        return None
+
+def get_pokemon_team_types(team_list, version):
+    gen_num = get_version_generation(version)
+    if version == None: return None
+    for pokemon in team_list:
+        pass
