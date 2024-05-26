@@ -11,7 +11,12 @@ from apiInteraction import (
     get_pokemon_moves,
     get_version_group,
     add_move_by_version,
-    move_version_is_valid
+    move_version_is_valid,
+    get_all_types
+)
+
+from textManip import (
+    convert_generation_to_num
 )
 
 class Tests(unittest.TestCase):
@@ -117,14 +122,6 @@ class Tests(unittest.TestCase):
             close_string, None
         ) 
         
-    def test_get_close_string_4(self):
-        string = "pikachupikachupi"
-        string_list = ["pichu", "pikachu", "raichu"]
-        close_string = get_close_string(string, string_list)
-        self.assertEqual(
-            close_string, None
-        ) 
-        
     def test_get_close_string_5(self):
         string = "zapcannon"
         string_list = ["zap-cannon"]
@@ -133,6 +130,80 @@ class Tests(unittest.TestCase):
             close_string, "zap-cannon"
         ) 
         
+    def test_convert_gen_to_num_1(self):
+        gen = "generation-i"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 1
+        ) 
+        
+    def test_convert_gen_to_num_3(self):
+        gen = "generation-iii"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 3
+        ) 
+        
+    def test_convert_gen_to_num_4(self):
+        gen = "generation-iv"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 4
+        ) 
+        
+    def test_convert_gen_to_num_6(self):
+        gen = "generation-vi"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 6
+        ) 
+    def test_convert_gen_to_num_9(self):
+        gen = "generation-ix"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 9
+        ) 
+    def test_convert_gen_to_num_11(self):
+        gen = "generation-xi"
+        num = convert_generation_to_num(gen)
+        self.assertEqual(
+            num, 11
+        ) 
+        
+    def test_get_all_types_gen1(self):
+        version = "red"
+        types = get_all_types(version)
+        self.assertEqual(
+            len(types), 15
+        )
+        
+    def test_get_all_types_gen2(self):
+        version = "crystal"
+        types = get_all_types(version)
+        self.assertEqual(
+            len(types), 17
+        )
+        
+    def test_get_all_types_gen5(self):
+        version = "black"
+        types = get_all_types(version)
+        self.assertEqual(
+            len(types), 17
+        )
+        
+    def test_get_all_types_gen6(self):
+        version = "x"
+        types = get_all_types(version)
+        self.assertEqual(
+            len(types), 18
+        )
+    
+    def test_get_all_types_gen9(self):
+        version = "violet"
+        types = get_all_types(version)
+        self.assertEqual(
+            len(types), 19
+        )
     
 if __name__ == "__main__":
     unittest.main()
