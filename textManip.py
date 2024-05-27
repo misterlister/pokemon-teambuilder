@@ -30,48 +30,6 @@ def convert_generation_to_num(generation: str) -> int:
         if i == size: return value
     return value
 
-def print_list(list):
-    max_size = 1
-    if len(list) == 0:
-        print("No data exists")
-        return
-    for item in list:
-        if item == None:
-            if 4 > max_size: max_size = 5
-        elif len(item) > max_size:
-            max_size = len(item) + 1
-    items_per_line = int(90 / max_size)
-    for i in range(len(list)):
-        if i % items_per_line == 0 and i > 0:
-            print("")
-        if list[i] == None:
-            value = "None"
-        else:
-            value = list[i]
-        print(f"{value.ljust(max_size, " ")} ", end="")
-    print("")
-
-def confirm(question):
-    valid = False
-    while not valid:
-        response = input(f"{question} Yes/No: ")
-        response = response.lower()
-        if response == "yes" or response == 'y':
-            return True
-        if response == "no" or response == 'n':
-            return False
-        print("Invalid response, please try again.")
-        
-def select_number(low, high, question):
-    valid = False
-    while not valid:
-        input_num = input(question)
-        if input_num.isdigit():
-            input_num = int(input_num)
-            if input_num >= low and input_num <= high:
-                return input_num
-        print(f"Please enter a number between {low} and {high}")
-
 def get_close_string(orig_string, string_list):
     closest_match = None
     max_matches = 0
@@ -107,3 +65,24 @@ def get_close_string(orig_string, string_list):
     if max_matches > (len(closest_match)) / 2:
         return closest_match
     return None
+
+def confirm(question):
+    valid = False
+    while not valid:
+        response = input(f"{question} yes/no: ")
+        response = response.lower()
+        if response == "yes" or response == 'y':
+            return True
+        if response == "no" or response == 'n':
+            return False
+        print("Invalid response, please try again.")
+        
+def select_number(low, high, question):
+    valid = False
+    while not valid:
+        input_num = input(question)
+        if input_num.isdigit():
+            input_num = int(input_num)
+            if input_num >= low and input_num <= high:
+                return input_num
+        print(f"Please enter a number between {low} and {high}")
