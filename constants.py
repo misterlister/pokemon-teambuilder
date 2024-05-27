@@ -156,3 +156,10 @@ XD_MONS = [
         "shuckle",
         "larvitar", "pupitar", "tyranitar"
     ]
+
+CREATE_TEAM = "create"
+VIEW_TEAMS = "view"
+QUIT = "quit"
+CANCEL = "cancel"
+PLAYER = "player"
+VERSION = "version"
