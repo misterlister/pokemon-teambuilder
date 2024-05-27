@@ -1,14 +1,39 @@
+CREATE_PLAYER_TABLE = """
+    CREATE TABLE IF NOT EXISTS players (
+        player_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_name TEXT NOT NULL UNIQUE
+    )
+    """
+    
+CREATE_POKEMON_TABLE = """
+    CREATE TABLE IF NOT EXISTS pokemon (
+        pokemon_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pokemon_name TEXT NOT NULL,
+        move1 TEXT NOT NULL,
+        move2 TEXT NOT NULL,
+        move3 TEXT NOT NULL,
+        move4 TEXT NOT NULL
+    )
+    """
+
 CREATE_TEAMS_TABLE = """
     CREATE TABLE IF NOT EXISTS teams (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            player_name TEXT NOT NULL,
-            team_name TEXT NOT NULL,
-            version TEXT NULL,
-            pokemon1 TEXT,
-            pokemon2 TEXT,
-            pokemon3 TEXT,
-            pokemon4 TEXT,
-            pokemon5 TEXT,
-            pokemon6 TEXT
-        )
+        team_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id INTEGER NOT NULL,
+        team_name TEXT NOT NULL,
+        version TEXT NOT NULL,
+        pokemon1 INTEGER,
+        pokemon2 INTEGER,
+        pokemon3 INTEGER,
+        pokemon4 INTEGER,
+        pokemon5 INTEGER,
+        pokemon6 INTEGER,
+        FOREIGN KEY (player_id) REFERENCES players(id),
+        FOREIGN KEY (pokemon1) REFERENCES pokemon(id),
+        FOREIGN KEY (pokemon2) REFERENCES pokemon(id),
+        FOREIGN KEY (pokemon3) REFERENCES pokemon(id),
+        FOREIGN KEY (pokemon4) REFERENCES pokemon(id),
+        FOREIGN KEY (pokemon5) REFERENCES pokemon(id),
+        FOREIGN KEY (pokemon6) REFERENCES pokemon(id)
+    )
     """
