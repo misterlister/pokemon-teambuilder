@@ -1,5 +1,5 @@
 from sqlite3 import Connection
-from textManip import get_close_string, confirm, select_number
+from textManip import get_close_string, confirm, select_number, press_enter
 from printouts import print_list
 from classes import Pokemon, Team
 from dbInteraction import (
@@ -12,6 +12,7 @@ from apiInteraction import (
     get_all_pokemon_in_dex,
     get_pokemon_moves
 )
+from constants import LIST
 
 def create_team(connection: Connection) -> None:
     new_team = Team()
@@ -38,42 +39,41 @@ def create_team(connection: Connection) -> None:
         print(e)
     
 def get_player_name(connection: Connection) -> str:
-    valid = False
     existing_names = get_player_names(connection)
-    while not valid:
-        team_name = input("Please enter the name of the player who will use this team (eg. 'Ash'). Type 'list' to see all existing names: ")
-        if team_name == "list":
-                print_list(existing_names)
+    while True:
+        player_name = input("Please enter the name of the player who will use this team (eg. 'Ash'). Type 'list' to see all existing names: ")
+        if player_name == LIST:
+            print_list(existing_names, "Players:")
+            press_enter()
         else:
-            return team_name
+            return player_name
     
 def choose_version() -> str:
-    valid = False
     versions = get_all_version_names()
-    while not valid:
+    while True:
         version = input("Please enter the game version for this team (eg. red). Type 'list' to see all options: ")
         version = version.lower()
-        if version not in versions:
-            if version == "list":
-                print_list(versions)
-            else:
-                close_string = get_close_string(version, versions)
-                if close_string != None:
-                    if confirm(f"Did you mean '{close_string}'?"):
-                        return close_string
-                print(f"Sorry, '{version}' is not a valid Pokemon game version.")
-                if not confirm("Would you like to try again?"):
-                    return None
+        if version in versions:
+            break
+        if version == LIST:
+            print_list(versions, "Game versions:")
+            press_enter()
         else:
-            return version
+            close_string = get_close_string(version, versions)
+            if close_string != None:
+                if confirm(f"Did you mean '{close_string}'?"):
+                    return close_string
+            print(f"Sorry, '{version}' is not a valid Pokemon game version.")
+            if not confirm("Would you like to try again?"):
+                return None
+    return version
     
 def choose_team_name(connection: Connection, version: str) -> str:
-    valid = False
     existing_names = get_team_names_from_version(connection, version)
-    while not valid:
+    while True:
         team_name = input("Please enter the name for this team (eg. 'ruby team'). Type 'list' to see all existing names: ")
-        if team_name == "list":
-                print_list(existing_names)
+        if team_name == LIST:
+                print_list(existing_names, f"Teams from pokemon {version} version:")
         elif team_name in existing_names:
             print("Sorry, that team name already exists for this game.")
             if not confirm("Would you like to try again?"):
@@ -90,12 +90,10 @@ def choose_pokemon(version: str) -> list:
         pokemon_name = input(f"Please enter the species name of pokemon #{slots_filled + 1} (eg. pikachu). Type 'list' to see all options: ")
         pokemon_name = pokemon_name.lower()
         if pokemon_name not in available_pokemon:
-            if pokemon_name == "list":
-                print(f"Available Pokemon in Pokemon {version} version:\n")
-                print_list(available_pokemon)
+            if pokemon_name == LIST:
+                print_list(available_pokemon, f"Available Pokemon in Pokemon {version} version:\n")
                 if len(team_list) > 0:
-                    print("Team so far:")
-                    print_list(team_list)
+                    print_list(team_list, "Team so far:")
             else:
                 close_string = get_close_string(pokemon_name, available_pokemon)
                 if close_string != None:
@@ -117,8 +115,7 @@ def assign_pokemon(new_team: Team, team_list: list) -> None:
     for pokemon_name in team_list:
         new_pokemon = Pokemon(pokemon_name)
         new_team.set_pokemon(new_pokemon)
-    return
-        
+    return  
 
 def select_movesets(team: Team) -> None:
     version = team.get_version()
@@ -133,9 +130,8 @@ def select_movesets(team: Team) -> None:
             selected_move = input(f"Please enter move #{i} (eg. hydro-pump). Type 'list' to see all options: ")
             selected_move = selected_move.lower()
             if selected_move not in available_moves:
-                if selected_move == "list":
-                    print(f"Available moves for {name} in {version} version:\n")
-                    print_list(available_moves)
+                if selected_move == LIST:
+                    print_list(available_moves, f"Available moves for {name} in {version} version:\n")
                 else:
                     close_string = get_close_string(selected_move, available_moves)
                     if close_string != None:
@@ -149,8 +145,7 @@ def select_movesets(team: Team) -> None:
             else:
                 pokemon.set_move(selected_move)
                 i += 1
-        print(f"{name}'s moveset:")
-        print_list(pokemon.get_all_moves())
+        print_list(pokemon.get_all_moves(), f"{name}'s moveset:")
     return
         
 def edit_team():
