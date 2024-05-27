@@ -31,7 +31,7 @@ def main_menu(connection: Connection) -> None:
         user_input = input().strip().lower()
         if user_input == CREATE_TEAM or user_input == "c":
             create_team(connection)
-        elif user_input == VIEW_TEAMS or user_input == "p":
+        elif user_input == VIEW_TEAMS or user_input == "v":
             view_teams(connection)
         elif user_input == QUIT or user_input == "q":
             break
@@ -54,8 +54,10 @@ def view_teams(connection: Connection):
         user_input = input().strip().lower()
         if user_input == PLAYER or user_input == "p":
             team_search_player(connection)
+            break
         elif user_input == VERSION or user_input == "v":
             team_search_version(connection)
+            break
         elif user_input == CANCEL or user_input == "c":
             break
         else:
@@ -64,8 +66,13 @@ def view_teams(connection: Connection):
 
 def team_search_player(connection: Connection):
     print("Player Search!")
+    press_enter()
     pass
 
 def team_search_version(connection: Connection):
     print("Version Search!")
+    press_enter()
     pass
+
+def press_enter() -> None:
+    input("Press Enter to continue ")
