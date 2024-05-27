@@ -133,9 +133,10 @@ def get_all_types(version):
         data = response.json()
         type_data = data["results"]
         types = [type["name"] for type in type_data]
+        
         types.remove("unknown")
         if gen_num < 9:
-            types.remove("unknown")
+            types.remove("stellar")
         if gen_num < 6:
             types.remove("fairy")
         if gen_num < 2:
