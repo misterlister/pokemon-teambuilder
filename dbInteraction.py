@@ -31,7 +31,7 @@ def get_team_names_from_version(connection: sqlite3.Connection, version: str) ->
 
 def get_team_names_from_player_name(connection: sqlite3.Connection, player_name: str) -> list:
     cursor = connection.cursor()
-    player_id = get_player_id_from_name(player_name)
+    player_id = get_player_id_from_name(connection, player_name)
     if player_id == None: return None
     cursor.execute("SELECT team_name FROM teams WHERE player_id = ?", (player_id,))
     team_names = cursor.fetchall()
@@ -46,6 +46,13 @@ def get_player_id_from_name(connection: sqlite3.Connection, player_name: str) ->
         return result[0]
     else:
         return None
+    
+def get_existing_versions(connection: sqlite3.Connection) -> list:
+    cursor = connection.cursor()
+    cursor.execute("SELECT DISTINCT version FROM teams")
+    versions = cursor.fetchall()
+    version_list = [version[0] for version in versions]
+    return version_list
     
 def add_player(connection: sqlite3.Connection, player_name: str) -> int:
     cursor = connection.cursor()
@@ -107,5 +114,66 @@ def add_team(connection: sqlite3.Connection, new_team: Team) -> int:
     print(f"Added team {team_name} to database successfully!")
     return team_id
 
+def get_team_id_from_player(connection: sqlite3.Connection, team: str, player: str) -> int:
+    cursor = connection.cursor()
+    cursor.execute("""
+                   SELECT team_id FROM teams
+                   JOIN players on teams.player_id = players.player_id
+                   WHERE team_name = ? AND player_name = ?
+                   """,(team, player))
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    return None
+
+def get_team_id_from_version(connection: sqlite3.Connection, team: str, version: str) -> int:
+    cursor = connection.cursor()
+    cursor.execute("""
+                   SELECT team_id FROM teams
+                   WHERE team_name = ? AND version = ?
+                   """,(team, version))
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    return None
     
-    
+
+def get_team_from_db(connection: sqlite3.Connection, team_id: int) -> Team:
+    cursor = connection.cursor()
+    cursor.execute("""
+                   SELECT player_name, team_name, version, 
+                   pokemon1, pokemon2, pokemon3,
+                   pokemon4, pokemon5, pokemon6
+                   FROM teams
+                   JOIN players on teams.player_id = players.player_id
+                   WHERE team_id = ?
+                   """,(team_id,))
+    row = cursor.fetchone()
+    print(row)
+    if row:
+        player_name = row[0]
+        team_name = row[1]
+        version = row[3]
+        pokemon_ids = row[3:9]
+        
+        pokemon_list = [extract_pokemon(connection, pid) if pid else None for pid in pokemon_ids]
+        print("got data")
+        team = Team(player_name, team_name, version,
+                    pokemon_list[0], pokemon_list[1], pokemon_list[2],
+                    pokemon_list[3], pokemon_list[4], pokemon_list[5], team_id)
+        return team
+    return None
+
+def extract_pokemon(connection: sqlite3.Connection, pokemon_id: int) -> Pokemon:
+    cursor = connection.cursor()
+    cursor.execute("""
+                   SELECT pokemon_name, move1, move2, move3, move4 
+                   FROM pokemon
+                   WHERE pokemon_id = ?
+                   """, (pokemon_id,))
+    row = cursor.fetchone()
+    if row:
+        return Pokemon(species_name=row[0],
+                       move1=row[1], move2=row[2],
+                       move3=row[3], move4=row[4])
+    return None
