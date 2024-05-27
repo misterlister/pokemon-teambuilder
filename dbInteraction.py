@@ -153,11 +153,10 @@ def get_team_from_db(connection: sqlite3.Connection, team_id: int) -> Team:
     if row:
         player_name = row[0]
         team_name = row[1]
-        version = row[3]
+        version = row[2]
         pokemon_ids = row[3:9]
         
         pokemon_list = [extract_pokemon(connection, pid) if pid else None for pid in pokemon_ids]
-        print("got data")
         team = Team(player_name, team_name, version,
                     pokemon_list[0], pokemon_list[1], pokemon_list[2],
                     pokemon_list[3], pokemon_list[4], pokemon_list[5], team_id)
