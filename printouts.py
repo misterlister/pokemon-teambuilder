@@ -5,19 +5,27 @@ from constants import (
 )
 
 def greeting() -> None:
-    print(LGBORDER)
+    print(LGBORDER*2)
     print("Welcome to the Pokemon Teambuilder!")
-    print(LGBORDER)
+    print(LGBORDER*2)
     
 def goodbye() -> None:
-    print(LGBORDER)
+    print(LGBORDER*3)
     print("Thanks for using the Pokemon Teambuilder! See you later!")
-    print(LGBORDER)
+    print(LGBORDER*3)
     
-def print_list(list: list) -> None:
+def print_list(list: list, heading:str = None) -> None:
+    if heading:
+        if len(heading) < 20:
+            border = LGBORDER
+        elif len(heading) < 40:
+            border = MDBORDER
+        else:
+            border = SMBORDER
+        print("\n", border, heading, border)
     max_size = 1
     if len(list) == 0:
-        print("No data exists")
+        print("No data exists\n")
         return
     for item in list:
         if item == None:
