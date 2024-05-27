@@ -1,28 +1,19 @@
+from sqlite3 import Connection
+from textManip import get_close_string, confirm, select_number
+from printouts import print_list
+from classes import Pokemon, Team
 from dbInteraction import (
     get_player_names, 
     get_team_names_from_version,
     add_team
     )
-
 from apiInteraction import (
     get_all_version_names,
     get_all_pokemon_in_dex,
     get_pokemon_moves
 )
 
-from textManip import (
-    confirm,
-    print_list,
-    get_close_string,
-    select_number
-)
-
-from classes import (
-    Pokemon,
-    Team
-)
-
-def create_team(connection):
+def create_team(connection: Connection) -> None:
     new_team = Team()
     try:
         player_name = get_player_name(connection)
@@ -46,7 +37,7 @@ def create_team(connection):
     except Exception as e:
         print(e)
     
-def get_player_name(connection):
+def get_player_name(connection: Connection) -> str:
     valid = False
     existing_names = get_player_names(connection)
     while not valid:
@@ -56,7 +47,7 @@ def get_player_name(connection):
         else:
             return team_name
     
-def choose_version():
+def choose_version() -> str:
     valid = False
     versions = get_all_version_names()
     while not valid:
@@ -70,13 +61,13 @@ def choose_version():
                 if close_string != None:
                     if confirm(f"Did you mean '{close_string}'?"):
                         return close_string
-                print("Sorry, '{version}' is not a valid Pokemon game version.")
+                print(f"Sorry, '{version}' is not a valid Pokemon game version.")
                 if not confirm("Would you like to try again?"):
                     return None
         else:
             return version
     
-def choose_team_name(connection, version):
+def choose_team_name(connection: Connection, version: str) -> str:
     valid = False
     existing_names = get_team_names_from_version(connection, version)
     while not valid:
@@ -90,7 +81,7 @@ def choose_team_name(connection, version):
         else:
             return team_name
             
-def choose_pokemon(version):
+def choose_pokemon(version: str) -> list:
     team_list = []
     slots_filled = 0
     to_fill = select_number(1, 6, "Please select the number of Pokemon you wish to add to your party (Between 1 and 6): ")
@@ -129,7 +120,7 @@ def assign_pokemon(new_team: Team, team_list: list) -> None:
     return
         
 
-def select_movesets(team: Team):
+def select_movesets(team: Team) -> None:
     version = team.get_version()
     for pokemon in team.get_all_pokemon():
         if pokemon is None: return

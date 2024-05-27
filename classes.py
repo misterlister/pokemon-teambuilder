@@ -1,11 +1,5 @@
-from textManip import (
-    print_list,
-)
-from constants import (
-    SMBORDER,
-    MDBORDER,
-    LGBORDER
-)
+from printouts import print_list
+from constants import SMBORDER, MDBORDER, LGBORDER
 
 class Pokemon():
     def __init__(self, 
@@ -39,7 +33,7 @@ class Pokemon():
                 size += 1
         return size
     
-    def set_move(self, new_move) -> None:
+    def set_move(self, new_move: str) -> None:
         for i in range (len(self.moves)):
             if self.moves[i] == None:
                 self.moves[i] = new_move
@@ -158,4 +152,5 @@ class Team():
                 slot.printout()
         print(LGBORDER)
         
-        
+class DatabaseInsertionError(Exception):
+    pass

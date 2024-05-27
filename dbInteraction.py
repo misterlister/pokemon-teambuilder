@@ -1,3 +1,4 @@
+from classes import Pokemon, Team, DatabaseInsertionError
 import sqlite3
 from sqlstatements import (
     CREATE_PLAYER_TABLE,
@@ -5,15 +6,7 @@ from sqlstatements import (
     CREATE_TEAMS_TABLE
 )
 
-from classes import (
-    Pokemon,
-    Team
-)
-
-class DatabaseInsertionError(Exception):
-    pass
-
-def init_database():
+def init_database() -> sqlite3.Connection:
     connection = sqlite3.connect("mypokemondb")
     cursor = connection.cursor()
     cursor.execute(CREATE_PLAYER_TABLE)
@@ -22,27 +15,30 @@ def init_database():
     connection.commit()
     return connection
 
-def get_player_names(connection) -> list:
+def get_player_names(connection: sqlite3.Connection) -> list:
     cursor = connection.cursor()
     cursor.execute("SELECT player_name FROM players")
     player_names = cursor.fetchall()
-    return player_names
+    player_list = [name[0] for name in player_names]
+    return player_list
 
-def get_team_names_from_version(connection, version: str) -> list:
+def get_team_names_from_version(connection: sqlite3.Connection, version: str) -> list:
     cursor = connection.cursor()
     cursor.execute("SELECT team_name FROM teams WHERE version = ?", (version,))
     team_names = cursor.fetchall()
-    return team_names
+    team_list = [name[0] for name in team_names]
+    return team_list
 
-def get_team_names_from_player_name(connection, player_name) -> list:
+def get_team_names_from_player_name(connection: sqlite3.Connection, player_name: str) -> list:
     cursor = connection.cursor()
     player_id = get_player_id_from_name(player_name)
     if player_id == None: return None
     cursor.execute("SELECT team_name FROM teams WHERE player_id = ?", (player_id,))
     team_names = cursor.fetchall()
-    return team_names
+    team_list = [name[0] for name in team_names]
+    return team_list
 
-def get_player_id_from_name(connection, player_name) -> int:
+def get_player_id_from_name(connection: sqlite3.Connection, player_name: str) -> int:
     cursor = connection.cursor()
     cursor.execute("SELECT player_id FROM players WHERE player_name = ?", (player_name,))
     result = cursor.fetchone()
@@ -51,13 +47,13 @@ def get_player_id_from_name(connection, player_name) -> int:
     else:
         return None
     
-def add_player(connection, player_name: str) -> int:
+def add_player(connection: sqlite3.Connection, player_name: str) -> int:
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO players (player_name) VALUES (?)", (player_name,))
     connection.commit()
     return get_player_id_from_name(connection, player_name)
 
-def add_pokemon(connection, pokemon: Pokemon) -> int:
+def add_pokemon(connection: sqlite3.Connection, pokemon: Pokemon) -> int:
     cursor = connection.cursor()
     cursor.execute("""
                    INSERT OR IGNORE INTO pokemon 
@@ -78,7 +74,7 @@ def add_pokemon(connection, pokemon: Pokemon) -> int:
     connection.commit()
     return pokemon_id
 
-def add_team(connection, new_team: Team):
+def add_team(connection: sqlite3.Connection, new_team: Team) -> int:
     team_name = new_team.get_team_name()
     cursor = connection.cursor()
     player_id = add_player(connection, new_team.get_player_name())
