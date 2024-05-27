@@ -1,6 +1,7 @@
 from dbInteraction import (
     get_player_names, 
-    get_team_names_from_version
+    get_team_names_from_version,
+    add_team
     )
 
 from apiInteraction import (
@@ -13,20 +14,37 @@ from textManip import (
     confirm,
     print_list,
     get_close_string,
-    select_number,
-    print_team
+    select_number
+)
+
+from classes import (
+    Pokemon,
+    Team
 )
 
 def create_team(connection):
-    player_name = get_player_name(connection)
-    if player_name is None: return
-    version = choose_version()
-    if version is None: return
-    teamName = choose_team_name(connection, version)
-    if teamName is None: return
-    pokemon_team = choose_pokemon(version)
-    if confirm("Would you like to set the team's movesets?"):
-        select_movesets(pokemon_team, version)
+    new_team = Team()
+    try:
+        player_name = get_player_name(connection)
+        new_team.set_player_name(player_name)
+        
+        version = choose_version()
+        new_team.set_version(version)
+        
+        team_name = choose_team_name(connection, version)
+        new_team.set_team_name(team_name)
+        
+        team_list = choose_pokemon(version)
+        assign_pokemon(new_team, team_list)
+        
+        if confirm("Would you like to set the team's movesets?"):
+            select_movesets(new_team)
+            
+        new_team.printout()
+        add_team(connection, new_team)
+        
+    except Exception as e:
+        print(e)
     
 def get_player_name(connection):
     valid = False
@@ -73,41 +91,49 @@ def choose_team_name(connection, version):
             return team_name
             
 def choose_pokemon(version):
-    team = []
-    party_full = 0
-    entries = select_number(1, 6, "Please select the number of Pokemon you wish to add to your party (Between 1 and 6): ")
+    team_list = []
+    slots_filled = 0
+    to_fill = select_number(1, 6, "Please select the number of Pokemon you wish to add to your party (Between 1 and 6): ")
     available_pokemon = get_all_pokemon_in_dex(version)
-    while party_full < entries:
-        pokemon_name = input(f"Please enter the species name of pokemon #{party_full + 1} (eg. pikachu). Type 'list' to see all options: ")
+    while slots_filled < to_fill:
+        pokemon_name = input(f"Please enter the species name of pokemon #{slots_filled + 1} (eg. pikachu). Type 'list' to see all options: ")
         pokemon_name = pokemon_name.lower()
         if pokemon_name not in available_pokemon:
             if pokemon_name == "list":
                 print(f"Available Pokemon in Pokemon {version} version:\n")
                 print_list(available_pokemon)
-                print_team(team)
+                if len(team_list) > 0:
+                    print("Team so far:")
+                    print_list(team_list)
             else:
                 close_string = get_close_string(pokemon_name, available_pokemon)
                 if close_string != None:
                     if confirm(f"Did you mean '{close_string}'?"):
-                        team.append({"name": close_string})
-                        party_full += 1
-                        if party_full == entries:
-                            print_team(team)
+                        team_list.append(close_string)
+                        slots_filled += 1
                         continue
                 print(f"Sorry, '{pokemon_name}' is not a valid Pokemon in {version} version.")
                 if not confirm("Would you like to try again?"):
-                    return None
+                    return team_list
         else:
-            team.append({"name": pokemon_name})
-            party_full += 1
-            if party_full == entries:
-                print_team(team)
-    return team
+            team_list.append(pokemon_name)
+            slots_filled += 1
+    return team_list
 
-def select_movesets(team, version):
-    for pokemon in team:
-        name = pokemon["name"]
-        pokemon["moves"] = []
+def assign_pokemon(new_team: Team, team_list: list) -> None:
+    if len(team_list) == 0:
+        raise Exception("No pokemon for team selected. Cancelling team creation.")
+    for pokemon_name in team_list:
+        new_pokemon = Pokemon(pokemon_name)
+        new_team.set_pokemon(new_pokemon)
+    return
+        
+
+def select_movesets(team: Team):
+    version = team.get_version()
+    for pokemon in team.get_all_pokemon():
+        if pokemon is None: return
+        name = pokemon.get_species()
         print(f"Selecting moves for {name}")
         available_moves = get_pokemon_moves(version, name)
         max_moves = min(len(available_moves), 4)
@@ -123,17 +149,17 @@ def select_movesets(team, version):
                     close_string = get_close_string(selected_move, available_moves)
                     if close_string != None:
                         if confirm(f"Did you mean '{close_string}'?"):
-                            pokemon["moves"].append(close_string)
+                            pokemon.set_move(close_string)
                             i += 1
                             continue
                     print(f"Sorry, '{selected_move}' is not a valid move for {name} in {version} version.")
                     if not confirm("Would you like to try again?"):
                         return
             else:
-                pokemon["moves"].append(selected_move)
+                pokemon.set_move(selected_move)
                 i += 1
         print(f"{name}'s moveset:")
-        print_list(pokemon["moves"])
+        print_list(pokemon.get_all_moves())
     return
         
 def edit_team():
