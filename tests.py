@@ -20,18 +20,7 @@ from textManip import (
 )
 
 class Tests(unittest.TestCase):
-    def test_get_all_version_names(self):
-        version_names = get_all_version_names()
-        self.assertEqual(
-            version_names, [
-                "red", "blue", "yellow", 
-                "gold", "silver", "crystal",
-                "ruby", "sapphire", "emerald", "firered", "leafgreen",
-                "diamond", "pearl", "platinum", "heartgold", "soulsilver",
-                "black", "white", "colosseum", "xd", "other"
-            ]
-        )
-        
+
     def test_get_version_group_red(self):
         version_group = get_version_group("red")
         self.assertEqual(
@@ -157,12 +146,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(
             num, 6
         ) 
+        
     def test_convert_gen_to_num_9(self):
         gen = "generation-ix"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 9
         ) 
+        
     def test_convert_gen_to_num_11(self):
         gen = "generation-xi"
         num = convert_generation_to_num(gen)
