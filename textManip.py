@@ -36,14 +36,20 @@ def print_list(list):
         print("No data exists")
         return
     for item in list:
-        if len(item) > max_size:
+        if item == None:
+            if 4 > max_size: max_size = 5
+        elif len(item) > max_size:
             max_size = len(item) + 1
     items_per_line = int(90 / max_size)
     for i in range(len(list)):
-        if i % items_per_line == 0:
+        if i % items_per_line == 0 and i > 0:
             print("")
-        print(f"{list[i].ljust(max_size, " ")} ", end="")
-    print("\n")
+        if list[i] == None:
+            value = "None"
+        else:
+            value = list[i]
+        print(f"{value.ljust(max_size, " ")} ", end="")
+    print("")
 
 def confirm(question):
     valid = False
@@ -56,20 +62,13 @@ def confirm(question):
             return False
         print("Invalid response, please try again.")
         
-def print_team(team):
-    pokemon_names = []
-    for pokemon in team:
-        pokemon_names.append(pokemon["name"])
-    print("\nTeam:")
-    print_list(pokemon_names)
-        
 def select_number(low, high, question):
     valid = False
     while not valid:
         input_num = input(question)
         if input_num.isdigit():
             input_num = int(input_num)
-            if input_num > low and input_num < high:
+            if input_num >= low and input_num <= high:
                 return input_num
         print(f"Please enter a number between {low} and {high}")
 
