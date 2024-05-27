@@ -1,4 +1,3 @@
-
 def convert_generation_to_num(generation: str) -> int:
     i = generation.find("-")
     if i == -1:
@@ -86,3 +85,6 @@ def select_number(low, high, question):
             if input_num >= low and input_num <= high:
                 return input_num
         print(f"Please enter a number between {low} and {high}")
+        
+def press_enter() -> None:
+    input("\nPress Enter to continue\n")
