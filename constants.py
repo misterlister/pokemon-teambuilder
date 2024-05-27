@@ -1,3 +1,6 @@
+LGBORDER = "------------------"
+MDBORDER = "---------"
+SMBORDER = "---"
 BASEURL = "https://pokeapi.co/api/v2/"
 COLOSSEUM_MONS = [
     "espeon", "umbreon",
