@@ -63,7 +63,7 @@ def add_player(connection: sqlite3.Connection, player_name: str) -> int:
 def add_pokemon(connection: sqlite3.Connection, pokemon: Pokemon) -> int:
     cursor = connection.cursor()
     cursor.execute("""
-                   INSERT OR IGNORE INTO pokemon 
+                   INSERT INTO pokemon 
                    (pokemon_name, move1, move2, move3, move4) 
                    VALUES (?, ?, ?, ?, ?)
                    """, 
