@@ -32,7 +32,7 @@ def convert_generation_to_num(generation: str) -> int:
     return value
 
 def get_close_string(orig_string, string_list):
-    closest_match = None
+    closest_match = ""
     max_matches = 0
     orig_len = len(orig_string)
     if orig_len == 0 or len(string_list) == 0: return None
@@ -67,6 +67,12 @@ def get_close_string(orig_string, string_list):
     if max_matches > (len(closest_match)) / 2:
         return closest_match
     return None
+
+def confirm_close_string(orig_string, string_list):
+    close_string = get_close_string(orig_string, string_list)
+    if close_string:
+        if confirm(f"Did you mean '{close_string}'?"): return close_string
+    return orig_string
 
 def confirm(question):
     valid = False
