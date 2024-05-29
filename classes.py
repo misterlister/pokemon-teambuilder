@@ -1,5 +1,4 @@
-from printouts import print_list
-from constants import SMBORDER, MDBORDER, LGBORDER
+from printouts import print_list, print_title
 
 class Pokemon():
     def __init__(self, 
@@ -49,10 +48,7 @@ class Pokemon():
             self.moves[number - 1] = new_move
         
     def printout(self) -> None:
-        print(self.species_name, ":")
-        print(SMBORDER)
-        print_list(self.moves)
-        print(SMBORDER, "\n")
+        print_list(self.moves, self.species_name, True)
         
 
 class Team():
@@ -141,16 +137,12 @@ class Team():
             raise Exception("Error: you cannot change the team ID of an existing team")
         
     def printout(self) -> None:
-        print(LGBORDER)
-        print(f"Team {self.team_name}:")
-        print(MDBORDER)
+        print_title(f"Team {self.team_name}:")
         print(f"Player: {self.player_name}")
         print(f"Version: {self.version}")
         for slot in self.pokemon:
             if slot is not None:
-                print(MDBORDER)
                 slot.printout()
-        print(LGBORDER)
         
 class DatabaseInsertionError(Exception):
     pass
