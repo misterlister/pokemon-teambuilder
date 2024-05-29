@@ -149,7 +149,6 @@ def get_team_from_db(connection: sqlite3.Connection, team_id: int) -> Team:
                    WHERE team_id = ?
                    """,(team_id,))
     row = cursor.fetchone()
-    print(row)
     if row:
         player_name = row[0]
         team_name = row[1]
