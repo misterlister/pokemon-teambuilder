@@ -13,6 +13,4 @@ if __name__ == "__main__":
     main_menu(connection)
     clear()
     print_title(GOODBYE)
-    press_enter()
-    clear()
     connection.close()
