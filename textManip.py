@@ -1,3 +1,5 @@
+from os import system, name
+
 def convert_generation_to_num(generation: str) -> int:
     i = generation.find("-")
     if i == -1:
@@ -33,34 +35,35 @@ def get_close_string(orig_string, string_list):
     closest_match = None
     max_matches = 0
     orig_len = len(orig_string)
-    if orig_len == 0: return None
+    if orig_len == 0 or len(string_list) == 0: return None
     for string in string_list:
-        string_len = len(string)
-        if string_len > 0:
-            i = 0
-            match_count = 0
-            
-            for j in range (string_len):
-                matched = False
-                if i >= orig_len: break
-                if orig_string[i] == string[j]:
-                    i += 1
-                    matched = True
-                if not matched and i + 1 < orig_len:
-                    if orig_string[i+1] == string[j]:
-                        i += 2
-                        matched = True
-                if not matched and j + 1 < string_len:
-                    if orig_string[i] == string[j+1]:
+        if string != None:
+            string_len = len(string)
+            if string_len > 0:
+                i = 0
+                match_count = 0
+                
+                for j in range (string_len):
+                    matched = False
+                    if i >= orig_len: break
+                    if orig_string[i] == string[j]:
                         i += 1
-                        j += 1
                         matched = True
-                if matched: match_count += 1
-                else: i += 1
-                        
-            if match_count > max_matches:
-                max_matches = match_count
-                closest_match = string
+                    if not matched and i + 1 < orig_len:
+                        if orig_string[i+1] == string[j]:
+                            i += 2
+                            matched = True
+                    if not matched and j + 1 < string_len:
+                        if orig_string[i] == string[j+1]:
+                            i += 1
+                            j += 1
+                            matched = True
+                    if matched: match_count += 1
+                    else: i += 1
+                            
+                if match_count > max_matches:
+                    max_matches = match_count
+                    closest_match = string
     if max_matches > (len(closest_match)) / 2:
         return closest_match
     return None
@@ -88,3 +91,12 @@ def select_number(low, high, question):
         
 def press_enter() -> None:
     input("\nPress Enter to continue\n")
+    
+def clear():
+    # for windows
+    if name == 'nt':
+        _ = system('cls')
+        
+    # for mac and linux(here, os.name is 'posix')
+    else:
+        _ = system('clear')
