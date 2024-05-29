@@ -1,6 +1,8 @@
-LGBORDER = "------------------"
-MDBORDER = "---------"
-SMBORDER = "---"
+BORDER = "-"
+WIDTH = 96
+INNER_WIDTH = WIDTH - 8
+GREETING = "Welcome to the Pokemon Teambuilder!"
+GOODBYE = "Thanks for using the Pokemon Teambuilder! See you later!"
 BASEURL = "https://pokeapi.co/api/v2/"
 COLOSSEUM_MONS = [
     "espeon", "umbreon",
@@ -164,3 +166,15 @@ CANCEL = "cancel"
 PLAYER = "player"
 VERSION = "version"
 LIST = "list"
+EDIT = "edit"
+TEAM = "team"
+MOVES = "moves"
+STOP = "stop"
+FINISH = "finish"
+YES = "yes"
+NO = "no"
+
+VIEW_TITLE = "View Teams"
+MAIN_TITLE = "Main Menu"
+CREATE_TITLE = "Create Team"
+EDIT_TITLE = "Edit Teams"
