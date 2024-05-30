@@ -21,9 +21,9 @@ from apiInteraction import (
 )
 
 from constants import (
-    CREATE_TEAM, VIEW_TEAMS, PLAYER, VERSION,
-    CANCEL, QUIT, LIST, EDIT, TEAM, MOVES, STOP, FINISH,
-    VIEW_TITLE, MAIN_TITLE, CREATE_TITLE, EDIT_TITLE
+    CREATE_TEAM, VIEW_TEAMS, EDIT_TEAM, PLAYER, VERSION,
+    CANCEL, QUIT, LIST, TEAM, MOVES, STOP, DONE, NAME, POKEMON,
+    VIEW_TITLE, MAIN_TITLE, CREATE_TITLE, EDIT_TITLE, INVALID
 )
 
 def menu(question: str, 
@@ -38,12 +38,12 @@ def menu(question: str,
         clear()
         if title:
             print_heading(title)
-        print_heading(question)
-        print("")
         if message:
-            print(message)
+            print("\n"+ message)
         if show_list and printing_list:
             print_list(printing_list, list_heading, True)
+        print_heading(question)
+        print("")
         for option in options:
             print(f"\t{option} - {options[option]}")
         response = input()
@@ -60,51 +60,70 @@ def menu(question: str,
         return response
 
 def main_menu(connection: Connection) -> None:
+    current_message = None
     while True:
         user_input = menu("Select from the following options:",
                 {CREATE_TEAM: "Create a new team",
                 VIEW_TEAMS: "View all teams from a specific version, or by a specific player",
+                EDIT_TEAM: "Edit an existing team",
                 QUIT: "Quit the program"
-                }, title = MAIN_TITLE)
+                }, title = MAIN_TITLE,
+                message = current_message)
         if user_input == CREATE_TEAM or user_input == "c":
             create_team(connection)
+            current_message = None
         elif user_input == VIEW_TEAMS or user_input == "v":
             view_teams(connection)
+            current_message = None
+        elif user_input == EDIT_TEAM or user_input == "e":
+            edit_team(connection)
+            current_message = None
         elif user_input == QUIT or user_input == "q":
             break
         else:
-            print("Sorry. That is not a valid command selection.")    
+            current_message = INVALID 
     return
 
 def view_teams(connection: Connection):
+    team = team_search(connection, VIEW_TITLE)
+    print_team(team)
+    
+def print_team(team: Team) -> None:
+    if team == None: return
+    clear()
+    team.printout()
+    press_enter()
+    
+def team_search(connection: Connection, title_base: str) -> Team:
+    current_message = None 
     while True:
         user_input = menu("Choose how you would like to search for teams:",
                 {PLAYER: "Search by the player's name",
                 VERSION: "Search by the game version",
                 CANCEL: "Cancel and return to the main menu"
-                }, title = VIEW_TITLE)
+                }, title = title_base,
+                message = current_message)
         if user_input == PLAYER or user_input == "p":
-            team_search_player(connection)
-            return
+            team = team_search_player(connection, title_base)
+            return team
         elif user_input == VERSION or user_input == "v":
-            team_search_version(connection)
-            return
+            team = team_search_version(connection, title_base)
+            return team
         elif user_input == CANCEL or user_input == "c":
-            return
+            return None
         else:
-            print("Sorry. That is not a valid command selection.")    
+            current_message = INVALID 
 
-def team_search_player(connection: Connection) -> None:
+def team_search_player(connection: Connection, title_base: str) -> None:
     list_flag = False
     current_message = None
     existing_players = get_player_names(connection)
     if len(existing_players) == 0:
         print("No Teams were found. The database is currently empty.")
         press_enter()
-        return
-    question = "Enter the name of the player you would like to search for:"
+        return None
     while True:
-        chosen_player = menu(question,
+        chosen_player = menu("Enter the name of the player you would like to search for:",
                 {"[player name]": "Type in a player's name to search for their teams",
                 LIST: "Print out a list of all existing players",
                 CANCEL: "Cancel and return to the main menu"
@@ -112,67 +131,65 @@ def team_search_player(connection: Connection) -> None:
                 existing_players,
                 list_heading = "Players",
                 printing_list = existing_players,
-                title = VIEW_TITLE,
+                title = title_base,
                 message = current_message,
                 show_list = list_flag)
         if chosen_player == LIST or chosen_player == "l":
             list_flag = not list_flag
             current_message = None
         elif chosen_player == CANCEL or chosen_player == "c":
-            return
+            return None
         elif chosen_player in existing_players:
-            choose_team_by_player(connection, chosen_player)
-            return
+            team = choose_team_by_player(connection, chosen_player, title_base)
+            return team
         else:
             current_message = f"Sorry, there are no teams for '{chosen_player}'."
                 
-def choose_team_by_player(connection: Connection, player: str) -> None:
+def choose_team_by_player(connection: Connection, player: str, title_base: str) -> None:
     list_flag = False
     current_message = None
     existing_teams = get_team_names_from_player_name(connection, player)
-    question = "Enter the name of the team you would like to view:"
     while True:
-        chosen_team = menu(question,
-                {"[team name]": "Type in a team name to see its details",
+        chosen_team = menu("Enter the name of the team you would like to select:",
+                {"[team name]": "Type in a team name to select it",
                 LIST: f"Print out a list of all of {player}'s teams",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 existing_teams,
                 list_heading = f"{player}'s Teams:",
                 printing_list = existing_teams,
-                title = f"{VIEW_TITLE} - {player},",
+                title = f"{title_base} - {player},",
                 message = current_message,
                 show_list = list_flag)
         if chosen_team == LIST or chosen_team == "l":
             list_flag = not list_flag
             current_message = None
         elif chosen_team == CANCEL or chosen_team == "c":
-            return
+            return None
         elif chosen_team in existing_teams:
+            team = None
             try:
                 team_id = get_team_id_from_player(connection, chosen_team, player)
                 team = get_team_from_db(connection, team_id)
-                clear()
-                team.printout()
-                press_enter()
             except Exception as e:
                 print(e)
-            return
+                press_enter()
+                return None
+            return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for player '{player}'."
     
                 
-def team_search_version(connection: Connection) -> None:
+def team_search_version(connection: Connection, title_base: str) -> None:
     list_flag = False
     current_message = None
     existing_versions = get_existing_versions(connection)
-    question = "Enter the name of the version you would like to search for:"
     if len(existing_versions) == 0:
         print("No Teams were found. The database is currently empty.")
         press_enter()
-        return
+        return None
     while True:
-        chosen_version = menu(question,
+        chosen_version = menu("Enter the name of the version you would like to search for:",
                 {"[version name]": "Type in a version name to search for its teams",
                 LIST: f"Print out a list of all versions that have saved teams",
                 CANCEL: "Cancel and return to the main menu"
@@ -180,56 +197,53 @@ def team_search_version(connection: Connection) -> None:
                 existing_versions,
                 list_heading = "Versions:",
                 printing_list = existing_versions,
-                title = VIEW_TITLE,
+                title = title_base,
                 message = current_message,
                 show_list = list_flag)
         if chosen_version == LIST or chosen_version == "l":
             list_flag = not list_flag
             current_message = None
         elif chosen_version == CANCEL or chosen_version == "c":
-            return
+            return None
         elif chosen_version in existing_versions: 
-            choose_team_by_version(connection, chosen_version)
-            return
+            team = choose_team_by_version(connection, chosen_version, title_base)
+            return team
         else:
             current_message = f"Sorry, there are no teams for '{chosen_version}'."
             
-def choose_team_by_version(connection: Connection, version: str) -> None:
+def choose_team_by_version(connection: Connection, version: str, title_base: str) -> None:
     list_flag = False
     current_message = None
     existing_teams = get_team_names_from_version(connection, version)
-    question = "Enter the name of the team you would like to view:"
     while True:
-        chosen_team = menu(question,
-                {"[Team name]": "Type in a team name to see its details",
+        chosen_team = menu("Enter the name of the team you would like to select:",
+                {"[Team name]": "Type in a team name to select it",
                 LIST: f"Print out a list of all teams for {version} version",
                 CANCEL: "Cancel and return to the main menu"
                 }, 
                 existing_teams,
                 list_heading = f"Teams for {version} version:",
                 printing_list = existing_teams,
-                title = f"{VIEW_TITLE} - {version}",
+                title = f"{title_base} - {version}",
                 message = current_message,
                 show_list = list_flag)
         if chosen_team == LIST or chosen_team == "l":
             list_flag = not list_flag
             current_message = None
         elif chosen_team == CANCEL or chosen_team == "c":
-            return
+            return None
         elif chosen_team in existing_teams: 
             try:
                 team_id = get_team_id_from_version(connection, chosen_team, version)
                 team = get_team_from_db(connection, team_id)
-                clear()
-                team.printout()
-                press_enter()
             except Exception as e:
                 print(e)
-            return
+                press_enter()
+                return None
+            return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for '{version}' version."
     
-                
 def create_team(connection: Connection) -> None:
     new_team = Team()
     try:
@@ -257,9 +271,8 @@ def create_team(connection: Connection) -> None:
 def get_player_name(connection: Connection) -> str:
     list_flag = False
     existing_names = get_player_names(connection)
-    question = "Please enter the name of the player who will use this team:"
     while True:
-        player_name = menu(question,
+        player_name = menu("Please enter the name of the player who will use this team:",
                 {"[player name]": "Select the name of the player for this team",
                 LIST: "Print out a list of all existing players",
                 CANCEL: "Cancel and return to the main menu"
@@ -276,14 +289,13 @@ def get_player_name(connection: Connection) -> str:
             return player_name
     
 def choose_version() -> str:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_versions = get_all_version_names()
-    question = "Please enter the game version for this team:"
     while True:
-        version = menu(question,
+        version = menu("Please enter the game version for this team:",
                 {"[version name]": "Select the version for this team",
-                LIST: "Print out a list of all versions",
+                LIST: "Toggle list of versions",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 existing_versions,
@@ -303,14 +315,13 @@ def choose_version() -> str:
             current_message = f"Sorry, '{version}' is not a valid Pokemon game version."
     
 def choose_team_name(connection: Connection, version: str) -> str:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_names = get_team_names_from_version(connection, version)
-    question = "Please enter the name for this team:"
     while True:
-        team_name = menu(question,
+        team_name = menu("Please enter the name for this team:",
                 {"[team name]": "Select a Team Name",
-                LIST: f"Print out a list of all teams for {version} version",
+                LIST: f"Toggle list of all teams for {version} version",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 list_heading = f"Teams from pokemon {version} version:",
@@ -338,14 +349,13 @@ def choose_pokemon(version: str) -> list:
     available_pokemon = get_all_pokemon_in_dex(version)
     current_list_heading = None
     current_list = None
-    list_flag = False
+    list_flag = True
     current_message = None
     while slots_filled < to_fill:
-        question = f"Please enter the species name of pokemon #{slots_filled + 1}:"
-        pokemon_name = menu(question,
+        pokemon_name = menu(f"Please enter the species name of pokemon #{slots_filled + 1}:",
                 {"[species name]": "Select the pokemon you want to add to the team",
-                LIST: f"Print out a list of all pokemon for {version} version",
-                TEAM: "Print out a list of all pokemon selected for the team so far",
+                LIST: f"Toggle list of all pokemon for {version} version",
+                TEAM: "Toggle list of all pokemon selected for the team so far",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 available_pokemon,
@@ -404,7 +414,7 @@ def select_movesets(team: Team) -> None:
         if pokemon is None: return
         current_list_heading = None
         current_list = None
-        list_flag = False
+        list_flag = True
         current_message = None
         name = pokemon.get_species()
         menu_title = f"{CREATE_TITLE} - Selecting {name}'s Moves"
@@ -412,13 +422,12 @@ def select_movesets(team: Team) -> None:
         max_moves = min(len(available_moves), 4)
         i = 1
         while i < max_moves + 1:
-            question = f"Please enter move #{i}:"
-            selected_move = menu(question,
+            selected_move = menu(f"Please enter move #{i}:",
                     {"[move name]": "Select the name of a move to add",
-                    LIST: f"Print out a list of all valid moves for {name}",
-                    MOVES: f"Print out a list of {name}'s moves so far",
+                    LIST: f"Toggle list of all valid moves for {name}",
+                    MOVES: f"Toggle list of {name}'s moves so far",
                     STOP: f"Stop adding moves for this pokemon",
-                    FINISH: f"Finish adding moves altogether",
+                    DONE: f"Done adding moves altogether",
                     CANCEL: "Cancel and return to the main menu"
                     },
                     available_moves,
@@ -447,7 +456,7 @@ def select_movesets(team: Team) -> None:
                 current_message = None
             elif selected_move == STOP or selected_move == "s":
                 break
-            elif selected_move == FINISH or selected_move == "f":
+            elif selected_move == DONE or selected_move == "d":
                 return
             elif selected_move == CANCEL or selected_move == "c":
                 raise Exception("")
@@ -463,5 +472,48 @@ def select_movesets(team: Team) -> None:
         press_enter()
     return
         
-def edit_team():
+def edit_team(connection: Connection) -> None:
+    title_base = EDIT_TITLE
+    team = team_search(connection, title_base)
+    if team == None: return
+    current_message = None 
+    while True:
+        user_input = menu("Choose what you would like to edit:",
+                {NAME: "Edit the team's name",
+                MOVES: "Edit a pokemon's moves",
+                POKEMON: "Change the pokemon on the team",
+                LIST: "Print out the team's details",
+                CANCEL: "Cancel and return to the main menu"
+                }, title = title_base,
+                message = current_message)
+        if user_input == NAME or user_input == "n":
+            edit_team_name(connection, team)
+            current_message = None 
+        elif user_input == MOVES or user_input == "m":
+            edit_team_moves(connection, team)
+            current_message = None 
+        elif user_input == POKEMON or user_input == "p":
+            edit_team_pokemon(connection, team)
+            current_message = None 
+        elif user_input == LIST or user_input == "l":
+            print_team(team)
+            current_message = None 
+        elif user_input == CANCEL or user_input == "c":
+            return
+        else:
+            current_message = INVALID  
+
+def edit_team_name(connection: Connection, team: Team) -> None:
+    print("EDIT TEAM NAME")
+    press_enter()
+    pass
+
+def edit_team_moves(connection: Connection, team: Team) -> None:
+    print("EDIT TEAM MOVES")
+    press_enter()
+    pass
+
+def edit_team_pokemon(connection: Connection, team: Team) -> None:
+    print("EDIT TEAM POKEMON")
+    press_enter()
     pass
