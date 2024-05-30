@@ -29,11 +29,11 @@ CREATE_TEAMS_TABLE = """
         pokemon5 INTEGER,
         pokemon6 INTEGER,
         FOREIGN KEY (player_id) REFERENCES players(id),
-        FOREIGN KEY (pokemon1) REFERENCES pokemon(id),
-        FOREIGN KEY (pokemon2) REFERENCES pokemon(id),
-        FOREIGN KEY (pokemon3) REFERENCES pokemon(id),
-        FOREIGN KEY (pokemon4) REFERENCES pokemon(id),
-        FOREIGN KEY (pokemon5) REFERENCES pokemon(id),
-        FOREIGN KEY (pokemon6) REFERENCES pokemon(id)
+        FOREIGN KEY (pokemon1) REFERENCES pokemon(id) ON DELETE SET NULL,
+        FOREIGN KEY (pokemon2) REFERENCES pokemon(id) ON DELETE SET NULL,
+        FOREIGN KEY (pokemon3) REFERENCES pokemon(id) ON DELETE SET NULL,
+        FOREIGN KEY (pokemon4) REFERENCES pokemon(id) ON DELETE SET NULL,
+        FOREIGN KEY (pokemon5) REFERENCES pokemon(id) ON DELETE SET NULL,
+        FOREIGN KEY (pokemon6) REFERENCES pokemon(id) ON DELETE SET NULL
     )
     """
