@@ -175,3 +175,107 @@ def extract_pokemon(connection: sqlite3.Connection, pokemon_id: int) -> Pokemon:
                        move1=row[1], move2=row[2],
                        move3=row[3], move4=row[4])
     return None
+
+def remove_pokemon(connection: sqlite3.Connection, pokemon_id: int):
+    cursor = connection.cursor()
+    
+    if pokemon_id is not None:
+        
+        cursor.execute("""
+                        DELETE FROM pokemon
+                        WHERE pokemon_id = ?
+                        """, (pokemon_id,))
+        
+        connection.commit()
+    
+
+def get_pokemon_id_in_slot(connection: sqlite3.Connection, team_id: int, slot: int) -> int:
+    cursor = connection.cursor()
+    slot_column = f"pokemon{slot}"
+    cursor.execute(f"""
+                   SELECT {slot_column}
+                   FROM teams
+                   WHERE team_id = ?
+                   """, (team_id,))
+    pokemon_id = cursor.fetchone()
+    
+    if pokemon_id:
+        return pokemon_id[0]
+    return None
+
+def update_team_name(connection: sqlite3.Connection, team_id: int, new_team_name: str):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+                    UPDATE teams
+                    SET team_name = ?
+                    WHERE team_id = ?
+                    """, 
+                    (new_team_name, team_id))
+        connection.commit()
+    except sqlite3.Error as e:
+        connection.rollback()
+        raise e
+    
+def update_pokemon_slot(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, slot: int):
+    try:
+        cursor = connection.cursor()
+        
+        slot_column = f"pokemon{slot}"
+        new_id = add_pokemon(connection, pokemon)
+        old_id = get_pokemon_id_in_slot(connection, team_id, slot)
+        if old_id:
+            remove_pokemon(connection, old_id)
+        
+        cursor.execute(f"""
+                    UPDATE teams
+                    SET {slot_column} = ?
+                    WHERE team_id = ?
+                    """, 
+                    (new_id, team_id))
+        
+        connection.commit()
+    except sqlite3.Error as e:
+        connection.rollback()
+        raise e
+    
+def update_single_move(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, pokemon_slot: int, moveslot: int):
+    try:
+        cursor = connection.cursor()
+        
+        moveslot_column = f"move{moveslot}"
+        pokemon_id = get_pokemon_id_in_slot(connection, team_id, pokemon_slot)
+        
+        cursor.execute(f"""
+                    UPDATE pokemon
+                    SET {moveslot_column} = ?
+                    WHERE pokemon_id = ?
+                    """, 
+                    (pokemon.get_move_in_slot(moveslot), pokemon_id))
+        
+        connection.commit()
+    except sqlite3.Error as e:
+        connection.rollback()
+        raise e
+
+def update_moveset(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, pokemon_slot: int):
+    try:
+        cursor = connection.cursor()
+        
+        pokemon_id = get_pokemon_id_in_slot(connection, team_id, pokemon_slot)
+        
+        cursor.execute(f"""
+                    UPDATE pokemon
+                    SET move1 = ?, move2 = ?, move3 = ?, move4 = ?
+                    WHERE pokemon_id = ?
+                    """, 
+                    (pokemon.get_move_in_slot(1), 
+                     pokemon.get_move_in_slot(2),
+                     pokemon.get_move_in_slot(3),
+                     pokemon.get_move_in_slot(4),
+                     pokemon_id))
+        
+        connection.commit()
+    except sqlite3.Error as e:
+        connection.rollback()
+        raise e
