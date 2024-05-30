@@ -10,6 +10,7 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
         print_heading(heading)
     
     max_size = 1
+    buffer = "  "
     if len(list) == 0:
         print("No data exists\n")
         return
@@ -17,10 +18,11 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
         if item == None:
             if 4 > max_size: max_size = 5
         elif len(item) > max_size:
-            max_size = len(item) + 1
+            max_size = len(item)
+    max_size += len(buffer)
     items_per_line = int(INNER_WIDTH / max_size)
     if border:
-        list_border = (max_size * min(items_per_line, len(list))) * BORDER
+        list_border = ((max_size+1) * min(items_per_line, len(list))) * BORDER
         print("\t" + list_border)
     print("\t", end="")
     for i in range(len(list)):
@@ -30,7 +32,7 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
             value = "None"
         else:
             value = list[i]
-        print(f"{value.ljust(max_size, " ") }", end="")
+        print(f"{value.ljust(max_size, " ")}{buffer}", end="")
     if border:
         print("\n\t" + list_border)
     else:
