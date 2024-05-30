@@ -1,7 +1,7 @@
 from sqlite3 import Connection
 from classes import Pokemon, Team
-from printouts import print_list, print_heading, print_title
-from textManip import press_enter, confirm_close_string, confirm, select_number, clear
+from printouts import print_list, print_heading
+from textManip import press_enter, confirm_close_string, select_number, clear
 
 from dbInteraction import (
     get_player_names,
@@ -11,7 +11,12 @@ from dbInteraction import (
     get_team_id_from_player,
     get_team_id_from_version,
     get_existing_versions,
-    add_team
+    add_team,
+    update_team_name,
+    update_pokemon_slot,
+    update_moveset,
+    update_single_move
+    
 )
 
 from apiInteraction import (
@@ -22,8 +27,8 @@ from apiInteraction import (
 
 from constants import (
     CREATE_TEAM, VIEW_TEAMS, EDIT_TEAM, PLAYER, VERSION,
-    CANCEL, QUIT, LIST, TEAM, MOVES, STOP, DONE, NAME, POKEMON,
-    VIEW_TITLE, MAIN_TITLE, CREATE_TITLE, EDIT_TITLE, INVALID
+    CANCEL, QUIT, LIST, SINGLE, ALL, MOVES, STOP, NAME, POKEMON,
+    VIEW_TITLE, MAIN_TITLE, CREATE_TITLE, EDIT_TITLE, INVALID, BACK
 )
 
 def menu(question: str, 
@@ -31,6 +36,8 @@ def menu(question: str,
          choice_list: list = None, 
          list_heading: str = None,
          printing_list: str = None,
+         list_heading_2: str = None,
+         printing_list_2: str = None,
          title: str = None, 
          message: str = None,
          show_list: bool = False) -> str:
@@ -42,6 +49,8 @@ def menu(question: str,
             print("\n"+ message)
         if show_list and printing_list:
             print_list(printing_list, list_heading, True)
+            if printing_list_2:
+                print_list(printing_list_2, list_heading_2, True)
         print_heading(question)
         print("")
         for option in options:
@@ -115,7 +124,7 @@ def team_search(connection: Connection, title_base: str) -> Team:
             current_message = INVALID 
 
 def team_search_player(connection: Connection, title_base: str) -> None:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_players = get_player_names(connection)
     if len(existing_players) == 0:
@@ -125,7 +134,7 @@ def team_search_player(connection: Connection, title_base: str) -> None:
     while True:
         chosen_player = menu("Enter the name of the player you would like to search for:",
                 {"[player name]": "Type in a player's name to search for their teams",
-                LIST: "Print out a list of all existing players",
+                LIST: "Toggle list of all existing players",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 existing_players,
@@ -146,13 +155,13 @@ def team_search_player(connection: Connection, title_base: str) -> None:
             current_message = f"Sorry, there are no teams for '{chosen_player}'."
                 
 def choose_team_by_player(connection: Connection, player: str, title_base: str) -> None:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_teams = get_team_names_from_player_name(connection, player)
     while True:
         chosen_team = menu("Enter the name of the team you would like to select:",
                 {"[team name]": "Type in a team name to select it",
-                LIST: f"Print out a list of all of {player}'s teams",
+                LIST: f"Toggle list of all of {player}'s teams",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 existing_teams,
@@ -181,7 +190,7 @@ def choose_team_by_player(connection: Connection, player: str, title_base: str) 
     
                 
 def team_search_version(connection: Connection, title_base: str) -> None:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_versions = get_existing_versions(connection)
     if len(existing_versions) == 0:
@@ -191,7 +200,7 @@ def team_search_version(connection: Connection, title_base: str) -> None:
     while True:
         chosen_version = menu("Enter the name of the version you would like to search for:",
                 {"[version name]": "Type in a version name to search for its teams",
-                LIST: f"Print out a list of all versions that have saved teams",
+                LIST: f"Toggle list of all versions that have saved teams",
                 CANCEL: "Cancel and return to the main menu"
                 },
                 existing_versions,
@@ -212,13 +221,13 @@ def team_search_version(connection: Connection, title_base: str) -> None:
             current_message = f"Sorry, there are no teams for '{chosen_version}'."
             
 def choose_team_by_version(connection: Connection, version: str, title_base: str) -> None:
-    list_flag = False
+    list_flag = True
     current_message = None
     existing_teams = get_team_names_from_version(connection, version)
     while True:
         chosen_team = menu("Enter the name of the team you would like to select:",
                 {"[Team name]": "Type in a team name to select it",
-                LIST: f"Print out a list of all teams for {version} version",
+                LIST: f"Toggle list of all teams for {version} version",
                 CANCEL: "Cancel and return to the main menu"
                 }, 
                 existing_teams,
@@ -246,6 +255,7 @@ def choose_team_by_version(connection: Connection, version: str, title_base: str
     
 def create_team(connection: Connection) -> None:
     new_team = Team()
+    title_base = CREATE_TITLE
     try:
         player_name = get_player_name(connection)
         new_team.set_player_name(player_name)
@@ -253,15 +263,18 @@ def create_team(connection: Connection) -> None:
         version = choose_version()
         new_team.set_version(version)
         
-        team_name = choose_team_name(connection, version)
+        team_name = choose_team_name(connection, version, title_base)
         new_team.set_team_name(team_name)
         
-        team_list = choose_pokemon(version)
+        team_list = choose_team_pokemon(version, title_base)
         assign_pokemon(new_team, team_list)
         
-        select_movesets(new_team)
-            
+        select_team_movesets(new_team)
+        
+        clear()
+        print_heading(title_base)    
         new_team.printout()
+        
         add_team(connection, new_team)
         press_enter()
         
@@ -269,15 +282,15 @@ def create_team(connection: Connection) -> None:
         print(e)
     
 def get_player_name(connection: Connection) -> str:
-    list_flag = False
+    list_flag = True
     existing_names = get_player_names(connection)
     while True:
         player_name = menu("Please enter the name of the player who will use this team:",
                 {"[player name]": "Select the name of the player for this team",
-                LIST: "Print out a list of all existing players",
+                LIST: "Toggle list of all existing players",
                 CANCEL: "Cancel and return to the main menu"
                 },
-                list_heading = "Players",
+                list_heading = "Existing Players",
                 printing_list = existing_names,
                 title = f"{CREATE_TITLE} - Player Selection",
                 show_list = list_flag)
@@ -314,7 +327,7 @@ def choose_version() -> str:
         else:
             current_message = f"Sorry, '{version}' is not a valid Pokemon game version."
     
-def choose_team_name(connection: Connection, version: str) -> str:
+def choose_team_name(connection: Connection, version: str, title_base: str) -> str:
     list_flag = True
     current_message = None
     existing_names = get_team_names_from_version(connection, version)
@@ -322,11 +335,11 @@ def choose_team_name(connection: Connection, version: str) -> str:
         team_name = menu("Please enter the name for this team:",
                 {"[team name]": "Select a Team Name",
                 LIST: f"Toggle list of all teams for {version} version",
-                CANCEL: "Cancel and return to the main menu"
+                CANCEL: "Cancel and return to the last menu"
                 },
                 list_heading = f"Teams from pokemon {version} version:",
                 printing_list = existing_names,
-                title = f"{CREATE_TITLE} - Team Name Selection",
+                title = f"{title_base} - Team Name Selection",
                 message = current_message,
                 show_list = list_flag)
         if team_name == LIST or version == "l":
@@ -338,67 +351,52 @@ def choose_team_name(connection: Connection, version: str) -> str:
             current_message = "Sorry, that team name already exists for this game."
         else:
             return team_name
+        
+def choose_team_pokemon(version: str, title_base: str):
+    try:
+        team_list = []
+        clear()
+        print_heading(f"{title_base} - Choose Team Size")
+        slots = select_number(1, 6, "Please select the number of Pokemon you wish to add to your party (Between 1 and 6): ")
+        message = None
+        for i in range (slots):
+            new_pokemon, message = choose_pokemon(version, i+1, title_base, team_list, message)
+            team_list.append(new_pokemon)
+        clear()
+        print_heading(title_base)
+        print_list(team_list, "Team:", True)
+        press_enter()
+        return team_list
+    except Exception as e:
+        raise(e)
             
-def choose_pokemon(version: str) -> list:
-    team_list = []
-    slots_filled = 0
-    clear()
-    menu_title = f"{CREATE_TITLE} - Choose Pokemon"
-    print_title(menu_title)
-    to_fill = select_number(1, 6, "Please select the number of Pokemon you wish to add to your party (Between 1 and 6): ")
+def choose_pokemon(version: str, slot: int, title_base: str, team_list: list, current_message: str = None) -> tuple:
+    full_title = f"{title_base} - Choose Pokemon"
     available_pokemon = get_all_pokemon_in_dex(version)
-    current_list_heading = None
-    current_list = None
     list_flag = True
-    current_message = None
-    while slots_filled < to_fill:
-        pokemon_name = menu(f"Please enter the species name of pokemon #{slots_filled + 1}:",
+    while True:
+        pokemon_name = menu(f"Please enter the pokemon to add to slot #{slot}:",
                 {"[species name]": "Select the pokemon you want to add to the team",
                 LIST: f"Toggle list of all pokemon for {version} version",
-                TEAM: "Toggle list of all pokemon selected for the team so far",
-                CANCEL: "Cancel and return to the main menu"
+                CANCEL: "Cancel and return to the previous menu"
                 },
                 available_pokemon,
-                list_heading = current_list_heading,
-                printing_list = current_list,
-                title = menu_title,
+                list_heading = f"Available Pokemon in Pokemon {version} version:",
+                printing_list = available_pokemon,
+                list_heading_2 = "Pokemon Team:",
+                printing_list_2 = team_list,
+                title = full_title,
                 message = current_message,
                 show_list = list_flag)
         if pokemon_name == LIST or pokemon_name == "l":
-            if current_list is available_pokemon:
-                list_flag = False
-                current_list = None
-            else:
-                list_flag = True
-                current_list_heading = f"Available Pokemon in Pokemon {version} version:"
-                current_list = available_pokemon
+            list_flag = not list_flag
             current_message = None
-        elif pokemon_name == TEAM or pokemon_name == "t":
-            if current_list is team_list:
-                list_flag = False
-                current_list = None
-            else:
-                if len(team_list) > 0:
-                    list_flag = True
-                    current_list = team_list
-                    current_list_heading = "Team so far:"
-                    current_message = None
-                else:
-                    current_message = "No pokemon added yet"
         elif pokemon_name == CANCEL or pokemon_name == "c":
             raise Exception("")
         elif pokemon_name in available_pokemon:
-            team_list.append(pokemon_name)
-            slots_filled += 1
-            current_message = f"Added {pokemon_name} to the team!"
+            return pokemon_name, f"Added {pokemon_name} to the team!"
         else:
             current_message = f"Sorry, '{pokemon_name}' is not a valid Pokemon in {version} version."
-
-    if len(team_list) > 0:
-        clear()
-        print_list(team_list, "Team:", True)
-        press_enter()
-    return team_list
 
 def assign_pokemon(new_team: Team, team_list: list) -> None:
     if len(team_list) == 0:
@@ -408,112 +406,229 @@ def assign_pokemon(new_team: Team, team_list: list) -> None:
         new_team.set_pokemon(new_pokemon)
     return  
 
-def select_movesets(team: Team) -> None:
-    version = team.get_version()
-    for pokemon in team.get_all_pokemon():
-        if pokemon is None: return
-        current_list_heading = None
-        current_list = None
-        list_flag = True
-        current_message = None
+def select_team_movesets(team: Team) -> None:
+    try:
+        for pokemon in team.get_all_pokemon():
+            if pokemon is None: return
+            select_moveset(team.get_version(), pokemon, CREATE_TITLE)
+            clear()
+            print_list(pokemon.get_all_moves(), f"{pokemon.get_species()}'s moveset:")
+            press_enter()
+        return
+    except Exception as e:
+        raise(e)
+    
+def select_moveset(version: str, pokemon: Pokemon, title_base: str) -> bool:
+    try:
+        message = None
         name = pokemon.get_species()
-        menu_title = f"{CREATE_TITLE} - Selecting {name}'s Moves"
         available_moves = get_pokemon_moves(version, name)
         max_moves = min(len(available_moves), 4)
-        i = 1
-        while i < max_moves + 1:
-            selected_move = menu(f"Please enter move #{i}:",
-                    {"[move name]": "Select the name of a move to add",
-                    LIST: f"Toggle list of all valid moves for {name}",
-                    MOVES: f"Toggle list of {name}'s moves so far",
-                    STOP: f"Stop adding moves for this pokemon",
-                    DONE: f"Done adding moves altogether",
-                    CANCEL: "Cancel and return to the main menu"
-                    },
-                    available_moves,
-                    list_heading = current_list_heading,
-                    printing_list = current_list,
-                    title = menu_title,
-                    message = current_message,
-                    show_list = list_flag)
-            if selected_move == LIST or selected_move == "l":
-                if current_list is available_moves:
-                    list_flag = False
-                    current_list = None
-                else:
-                    list_flag = True
-                    current_list_heading = f"Available moves for {name} in {version} version:"
-                    current_list = available_moves
-                current_message = None
-            elif selected_move == MOVES or selected_move == "m":
-                if current_list == pokemon.get_all_moves():
-                    list_flag = False
-                    current_list = None
-                else:
-                    list_flag = True
-                    current_list_heading = f"{name}'s moveset:"
-                    current_list = pokemon.get_all_moves()
-                current_message = None
-            elif selected_move == STOP or selected_move == "s":
-                break
-            elif selected_move == DONE or selected_move == "d":
-                return
-            elif selected_move == CANCEL or selected_move == "c":
-                raise Exception("")
-            elif selected_move in available_moves:
-                pokemon.set_move(selected_move)
-                i += 1
-                available_moves.remove(selected_move)
-                current_message = f"Added '{selected_move}' to {name}'s moveset "
-            else:
-                current_message = f"Sorry, '{selected_move}' is not a valid move for {name} in {version} version."
-        clear()
-        print_list(pokemon.get_all_moves(), f"{name}'s moveset:")
-        press_enter()
-    return
-        
+        for i in range(1, max_moves + 1):
+            still_adding, message = select_move(version, pokemon, i, title_base, message, available_moves)
+            if not still_adding: break
+    except Exception as e:
+        raise(e)   
+    
+    
+def select_move(version: str, pokemon: Pokemon, moveslot: int, title_base: str, current_message: str = None, available_moves: list = None) -> tuple:
+    list_flag = True
+    name = pokemon.get_species()
+    if available_moves is None:
+        available_moves = get_pokemon_moves(version, name)
+    while True:
+        selected_move = menu(f"Please enter move #{moveslot}:",
+                {"[move name]": "Select the name of a move to add",
+                LIST: f"Toggle list of all valid moves for {name}",
+                STOP: f"Stop adding moves for this pokemon",
+                CANCEL: "Cancel and return to the previous menu"
+                },
+                available_moves,
+                list_heading = f"Available moves for {name} in {version} version:",
+                printing_list = available_moves,
+                list_heading_2 = f"{name}'s moveset:",
+                printing_list_2 = pokemon.get_all_moves(),
+                title = f"{title_base} - Selecting {name}'s Moves",
+                message = current_message,
+                show_list = list_flag)
+        if selected_move == LIST or selected_move == "l":
+            list_flag = not list_flag
+            current_message = None
+        elif selected_move == STOP or selected_move == "s":
+            return False, current_message
+        elif selected_move == CANCEL or selected_move == "c":
+            raise Exception("")
+        elif selected_move in available_moves:
+            pokemon.change_move(moveslot, selected_move)
+            available_moves.remove(selected_move)
+            current_message = f"Added '{selected_move}' to {name}'s moveset "
+            return True, current_message
+        else:
+            current_message = f"Sorry, '{selected_move}' is not a valid move to select."
+    
 def edit_team(connection: Connection) -> None:
+    try:
+        title_base = EDIT_TITLE
+        team = team_search(connection, title_base)
+        if team == None: return
+        current_message = None 
+        while True:
+            user_input = menu("Choose what you would like to edit:",
+                    {NAME: "Edit the team's name",
+                    MOVES: "Edit a pokemon's moves",
+                    POKEMON: "Change the pokemon on the team",
+                    LIST: "Print out the team's details",
+                    BACK: "Go back to the main menu"
+                    }, title = title_base,
+                    message = current_message)
+            if user_input == NAME or user_input == "n":
+                edit_team_name(connection, team)
+                current_message = None 
+            elif user_input == MOVES or user_input == "m":
+                edit_pokemon_moves(connection, team)
+                current_message = None 
+            elif user_input == POKEMON or user_input == "p":
+                edit_team_pokemon(connection, team)
+                current_message = None 
+            elif user_input == LIST or user_input == "l":
+                print_team(team)
+                current_message = None 
+            elif user_input == BACK or user_input == "b":
+                return
+            else:
+                current_message = INVALID
+    except Exception as e:
+        print(e)
+
+def edit_team_name(connection: Connection, team: Team) -> None:
     title_base = EDIT_TITLE
-    team = team_search(connection, title_base)
-    if team == None: return
+    new_team_name = choose_team_name(connection, team.get_version(), title_base)
+    clear()
+    print_heading(title_base)
+    try:
+        update_team_name(connection, team.get_team_id(), new_team_name)
+        team.set_team_name(new_team_name)
+        print(f"Team name changed to {new_team_name} successfully!")
+    except Exception as e:
+        print(e)
+    press_enter()
+
+def edit_pokemon_moves(connection: Connection, team: Team) -> None:
+    title_base = EDIT_TITLE
+    pokemon = select_pokemon_from_team(team, title_base)
     current_message = None 
     while True:
-        user_input = menu("Choose what you would like to edit:",
-                {NAME: "Edit the team's name",
-                MOVES: "Edit a pokemon's moves",
-                POKEMON: "Change the pokemon on the team",
-                LIST: "Print out the team's details",
-                CANCEL: "Cancel and return to the main menu"
-                }, title = title_base,
+        user_input = menu("Would you like to change a single move, or the whole moveset?:",
+                {SINGLE: "Change a single move",
+                ALL: "Change all of a pokemon's moves",
+                CANCEL: "Go back to the previous menu"
+                }, title = f"{title_base} - Change Move",
                 message = current_message)
-        if user_input == NAME or user_input == "n":
-            edit_team_name(connection, team)
-            current_message = None 
-        elif user_input == MOVES or user_input == "m":
-            edit_team_moves(connection, team)
-            current_message = None 
-        elif user_input == POKEMON or user_input == "p":
-            edit_team_pokemon(connection, team)
-            current_message = None 
-        elif user_input == LIST or user_input == "l":
-            print_team(team)
-            current_message = None 
+        if user_input == SINGLE or user_input == "s":
+            edit_one_move(connection, pokemon, team, title_base)
+            return
+        elif user_input == ALL or user_input == "a":
+            edit_all_moves(connection, pokemon, team, title_base)
+            return
         elif user_input == CANCEL or user_input == "c":
             return
         else:
-            current_message = INVALID  
-
-def edit_team_name(connection: Connection, team: Team) -> None:
-    print("EDIT TEAM NAME")
+            current_message = INVALID
+            
+def select_pokemon_from_team(team: Team, title_base: str) -> Pokemon:
+    clear()
+    print_heading(title_base)
+    name_list = team.get_pokemon_name_list()
+    for i in range(len(name_list)):
+        print(f"{i+1}: {name_list[i]}")
+    team_size = len(name_list)
+    slot = select_number(1, team_size, f"Please select the pokemon (Between 1 and {team_size}): ")
+    pokemon = team.get_pokemon_in_slot(slot)
+    return pokemon
+            
+def edit_one_move(connection: Connection, pokemon: Pokemon, team: Team, title_base: str):
+    title = f"{title_base} - Change Move"
+    clear()
+    print_heading(title)
+    print_heading("Current Moves:")
+    move_list = pokemon.get_all_moves()
+    for i in range(len(move_list)):
+        print(f"{i+1}: {move_list[i]}")
+    num_moves = pokemon.get_num_moves()
+    if num_moves < 4:
+        num_moves += 1
+        print(f"{num_moves}: Empty")
+    moveslot = select_number(1, num_moves, f"Please select the move to change (Between 1 and {num_moves}): ")
+    try:
+        pokemon_slot = team.get_slot_number_for_pokemon(pokemon)
+        if pokemon_slot == None:
+            raise Exception("Error: Pokemon not found on team")
+        select_move(team.get_version(), pokemon, moveslot, title_base)
+        clear()
+        print_heading(title)
+        print_list(pokemon.get_all_moves(), f"{pokemon.get_species()}'s new moveset:")
+        press_enter()
+        update_single_move(connection, team.get_team_id(), pokemon, pokemon_slot, moveslot)
+        clear()
+        print_heading(title)
+        print(f"Changed move successfully!")
+        
+    except Exception as e:
+        if e.args[0] == "":
+            raise(e)
+        print(e)
     press_enter()
-    pass
-
-def edit_team_moves(connection: Connection, team: Team) -> None:
-    print("EDIT TEAM MOVES")
+    
+def edit_all_moves(connection: Connection, pokemon: Pokemon, team: Team, title_base: str):
+    clear()
+    title = f"{title_base} - Change Moveset"
+    print_heading(title)
+    try:
+        pokemon_slot = team.get_slot_number_for_pokemon(pokemon)
+        if pokemon_slot == None:
+            raise Exception("Error: Pokemon not found on team")
+        select_moveset(team.get_version(), pokemon, title_base)
+        clear()
+        print_heading(title)
+        print_list(pokemon.get_all_moves(), f"{pokemon.get_species()}'s new moveset:")
+        press_enter()
+        update_moveset(connection, team.get_team_id(), pokemon, pokemon_slot)
+        clear()
+        print_heading(title)
+        print(f"Changed moveset successfully!")
+        
+    except Exception as e:
+        if e.args[0] == "":
+            raise(e)
+        print(e)
     press_enter()
-    pass
 
 def edit_team_pokemon(connection: Connection, team: Team) -> None:
-    print("EDIT TEAM POKEMON")
+    title_base = EDIT_TITLE
+    clear()
+    print_heading(f"{title_base} - Change Pokemon")
+    name_list = team.get_pokemon_name_list()
+    for i in range(len(name_list)):
+        print(f"{i+1}: {name_list[i]}")
+    team_size = len(name_list)
+    if team_size < 6:
+        team_size += 1
+        print(f"{team_size}: Empty")
+    slot = select_number(1, team_size, f"Please select the pokemon (Between 1 and {team_size}): ")
+    try:
+        new_pokemon, new_message = choose_pokemon(team.get_version(), slot, title_base, name_list)
+        replacement = Pokemon(new_pokemon)
+        select_moveset(team.get_version(), replacement, title_base)
+        clear()
+        print_list(replacement.get_all_moves(), f"{replacement.get_species()}'s moveset:")
+        press_enter()
+        
+        update_pokemon_slot(connection, team.get_team_id(), replacement, slot)
+        team.swap_pokemon(replacement, slot)
+        clear()
+        print_heading(f"{title_base} - Change Pokemon")
+        print(f"Swapped {replacement.get_species()} into slot {slot} successfully!")
+        
+    except Exception as e:
+        print(e)
     press_enter()
-    pass
