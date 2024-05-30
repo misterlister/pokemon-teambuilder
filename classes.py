@@ -39,10 +39,15 @@ class Pokemon():
                 return
         raise Exception(f"Error: All moves have already been selected.")
     
+    def reset_moves(self) -> None:
+        for i in range (len(self.moves)):
+            self.moves[i] = None
+        return
+    
     def change_move(self, number: int, new_move: str) -> None:
         if number > 4 or number <= 0:
             raise ValueError(f"Error: Invalid move number '{number}'.")
-        elif self.get_num_moves < 4:
+        elif self.get_num_moves() < 4:
             self.set_move(new_move)
         else:
             self.moves[number - 1] = new_move
@@ -95,10 +100,23 @@ class Team():
     def get_all_pokemon(self) -> list:
         return self.pokemon
     
+    def get_pokemon_name_list(self) -> list:
+        name_list = []
+        for slot in self.pokemon:
+            if slot != None:
+                name_list.append(slot.get_species())
+        return name_list
+    
     def get_pokemon_in_slot(self, number: int) -> str:
         if number > 6 or number <= 0:
             raise ValueError(f"Error: Invalid pokemon number '{number}'.")
         return self.pokemon[number - 1]
+    
+    def get_slot_number_for_pokemon(self, check_pokemon: Pokemon) -> int:
+        for i in range (len(self.pokemon)):
+            if self.pokemon[i] == check_pokemon:
+                return i+1
+        return None
     
     def get_team_id(self) -> int:
         return self.team_id
@@ -122,13 +140,13 @@ class Team():
                 return
         raise Exception(f"Error: Pokemon roster is already full.")
         
-    def swap_pokemon(self, new_pokemon: Pokemon, number: int) -> None:
-        if number > self.get_team_size() or number <= 0:
-            raise ValueError(f"Error: Invalid pokemon number '{number}'.")
-        elif self.get_team_size < 6:
+    def swap_pokemon(self, new_pokemon: Pokemon, slot_number: int) -> None:
+        if slot_number > 6 or slot_number <= 0:
+            raise ValueError(f"Error: Invalid pokemon number '{slot_number}'.")
+        elif self.get_team_size() < 6:
             self.set_pokemon(new_pokemon)
         else:
-            self.pokemon[number - 1] = new_pokemon
+            self.pokemon[slot_number - 1] = new_pokemon
             
     def set_team_id(self, team_id: int) -> None:
         if self.team_id is None:
@@ -143,6 +161,6 @@ class Team():
         for slot in self.pokemon:
             if slot is not None:
                 slot.printout()
-        
+            
 class DatabaseInsertionError(Exception):
     pass
