@@ -1,3 +1,7 @@
+"""
+Main function for pokemon-teambuilder.
+"""
+
 from menus import main_menu
 from db_interaction import init_database
 from printouts import print_title
