@@ -1,5 +1,7 @@
 # Pokemon Teambuilder
 
+![Pylint](https://github.com/your-username/your-repository/actions/workflows/pylint.yml/badge.svg)
+
 ## What is it?
 
 Pokemon Teambuilder is a command-line application which allows a user to store a database of pokemon teams from different versions.
