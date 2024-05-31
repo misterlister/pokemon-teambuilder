@@ -7,7 +7,7 @@ from printouts import printout_list, print_title
 class Pokemon():
     def __init__(self,
                  species_name: str,
-                 moves: dict = 
+                 moves: dict =
                     {"move1": None,
                     "move2": None,
                     "move3": None,
@@ -64,7 +64,7 @@ class Team():
                  player_name: str = None,
                  team_name: str = None,
                  version: str = None,
-                 pokemon_dict: dict = 
+                 pokemon_dict: dict =
                     {"pokemon1": None,
                     "pokemon2": None,
                     "pokemon3": None,

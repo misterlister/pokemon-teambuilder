@@ -43,7 +43,8 @@ def get_team_names_from_version(connection: sqlite3.Connection, version: str) ->
 def get_team_names_from_player_name(connection: sqlite3.Connection, player_name: str) -> list:
     cursor = connection.cursor()
     player_id = get_player_id_from_name(connection, player_name)
-    if player_id is None: return None
+    if player_id is None:
+        return None
     cursor.execute("SELECT team_name FROM teams WHERE player_id = ?", (player_id,))
     team_names = cursor.fetchall()
     team_list = [name[0] for name in team_names]
@@ -145,8 +146,9 @@ def get_team_from_db(connection: sqlite3.Connection, team_name: int) -> Team:
 
         pokemon_list = [extract_pokemon(connection, pid) if pid else None for pid in pokemon_ids]
         team = Team(player_name, team_name, version,
-                    {"pokemon1": pokemon_list[0], "pokemon2": pokemon_list[1], "pokemon3": pokemon_list[2],
-                    "pokemon4": pokemon_list[3], "pokemon5": pokemon_list[4], "pokemon6": pokemon_list[5]}, 
+                    {"pokemon1": pokemon_list[0], "pokemon2": pokemon_list[1],
+                     "pokemon3": pokemon_list[2], "pokemon4": pokemon_list[3],
+                     "pokemon5": pokemon_list[4], "pokemon6": pokemon_list[5]},
                     team_id)
         return team
     return None
@@ -161,7 +163,7 @@ def extract_pokemon(connection: sqlite3.Connection, pokemon_id: int) -> Pokemon:
     row = cursor.fetchone()
     if row:
         return Pokemon(species_name=row[0],
-                       moves = 
+                       moves =
                        {"move1":row[1], "move2":row[2],
                        "move3":row[3], "move4":row[4]})
     return None
@@ -209,7 +211,7 @@ def update_team_name(connection: sqlite3.Connection, team_id: int, new_team_name
 def update_pokemon_slot(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, slot: int):
     try:
         cursor = connection.cursor()
-        
+
         slot_column = f"pokemon{slot}"
         new_id = add_pokemon(connection, pokemon)
         old_id = get_pokemon_id_in_slot(connection, team_id, slot)

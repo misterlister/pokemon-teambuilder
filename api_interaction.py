@@ -150,7 +150,7 @@ def get_all_types(version: str) -> list:
     else:
         print(f"Failed to fetch data: {response.status_code}")
         return None
-    
+
 """
 def get_pokemon_team_types(team_list, version: str):
     gen_num = get_version_generation(version)
