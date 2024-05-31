@@ -20,7 +20,7 @@ CREATE_TEAMS_TABLE = """
     CREATE TABLE IF NOT EXISTS teams (
         team_id INTEGER PRIMARY KEY AUTOINCREMENT,
         player_id INTEGER NOT NULL,
-        team_name TEXT NOT NULL,
+        team_name TEXT NOT NULL UNIQUE,
         version TEXT NOT NULL,
         pokemon1 INTEGER,
         pokemon2 INTEGER,
