@@ -8,15 +8,13 @@ from dbInteraction import (
     get_team_names_from_player_name,
     get_team_names_from_version,
     get_team_from_db,
-    get_team_id_from_player,
-    get_team_id_from_version,
     get_existing_versions,
     add_team,
     update_team_name,
     update_pokemon_slot,
     update_moveset,
-    update_single_move
-    
+    update_single_move,
+    get_all_team_names
 )
 
 from apiInteraction import (
@@ -104,14 +102,26 @@ def print_team(team: Team) -> None:
     press_enter()
     
 def team_search(connection: Connection, title_base: str) -> Team:
-    current_message = None 
+    existing_teams = get_all_team_names(connection)
+    if len(existing_teams) == 0:
+        print("No Teams were found. The database is currently empty.")
+        press_enter()
+        return None
+    current_message = None
+    list_flag = True
     while True:
         user_input = menu("Choose how you would like to search for teams:",
-                {PLAYER: "Search by the player's name",
-                VERSION: "Search by the game version",
+                {"[team name]": "Select a team by name",
+                PLAYER: "Search for teams by a specific player",
+                VERSION: "Search for teams from a specific game version",
                 CANCEL: "Cancel and return to the main menu"
-                }, title = title_base,
-                message = current_message)
+                },
+                existing_teams,
+                list_heading = "Existing Teams:",
+                printing_list = existing_teams,
+                title = title_base,
+                message = current_message,
+                show_list = list_flag)
         if user_input == PLAYER or user_input == "p":
             team = team_search_player(connection, title_base)
             return team
@@ -120,6 +130,9 @@ def team_search(connection: Connection, title_base: str) -> Team:
             return team
         elif user_input == CANCEL or user_input == "c":
             return None
+        elif user_input in existing_teams:
+            team = import_team(connection, user_input)
+            return team
         else:
             current_message = INVALID 
 
@@ -128,7 +141,7 @@ def team_search_player(connection: Connection, title_base: str) -> None:
     current_message = None
     existing_players = get_player_names(connection)
     if len(existing_players) == 0:
-        print("No Teams were found. The database is currently empty.")
+        print("No players were found. The database is currently empty.")
         press_enter()
         return None
     while True:
@@ -176,19 +189,11 @@ def choose_team_by_player(connection: Connection, player: str, title_base: str) 
         elif chosen_team == CANCEL or chosen_team == "c":
             return None
         elif chosen_team in existing_teams:
-            team = None
-            try:
-                team_id = get_team_id_from_player(connection, chosen_team, player)
-                team = get_team_from_db(connection, team_id)
-            except Exception as e:
-                print(e)
-                press_enter()
-                return None
+            team = import_team(connection, chosen_team)
             return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for player '{player}'."
     
-                
 def team_search_version(connection: Connection, title_base: str) -> None:
     list_flag = True
     current_message = None
@@ -242,16 +247,20 @@ def choose_team_by_version(connection: Connection, version: str, title_base: str
         elif chosen_team == CANCEL or chosen_team == "c":
             return None
         elif chosen_team in existing_teams: 
-            try:
-                team_id = get_team_id_from_version(connection, chosen_team, version)
-                team = get_team_from_db(connection, team_id)
-            except Exception as e:
-                print(e)
-                press_enter()
-                return None
+            team = import_team(connection, chosen_team)
             return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for '{version}' version."
+            
+def import_team(connection: Connection, team_name: str):
+    try:
+        team = get_team_from_db(connection, team_name)
+        return team
+    except Exception as e:
+        print(e)
+        press_enter()
+        return None
+    
     
 def create_team(connection: Connection) -> None:
     new_team = Team()
@@ -263,7 +272,7 @@ def create_team(connection: Connection) -> None:
         version = choose_version()
         new_team.set_version(version)
         
-        team_name = choose_team_name(connection, version, title_base)
+        team_name = choose_team_name(connection, title_base)
         new_team.set_team_name(team_name)
         
         team_list = choose_team_pokemon(version, title_base)
@@ -327,28 +336,28 @@ def choose_version() -> str:
         else:
             current_message = f"Sorry, '{version}' is not a valid Pokemon game version."
     
-def choose_team_name(connection: Connection, version: str, title_base: str) -> str:
+def choose_team_name(connection: Connection, title_base: str) -> str:
     list_flag = True
     current_message = None
-    existing_names = get_team_names_from_version(connection, version)
+    existing_names = get_all_team_names(connection)
     while True:
         team_name = menu("Please enter the name for this team:",
                 {"[team name]": "Select a Team Name",
-                LIST: f"Toggle list of all teams for {version} version",
+                LIST: f"Toggle list of existing team names",
                 CANCEL: "Cancel and return to the last menu"
                 },
-                list_heading = f"Teams from pokemon {version} version:",
+                list_heading = f"Existing teams:",
                 printing_list = existing_names,
                 title = f"{title_base} - Team Name Selection",
                 message = current_message,
                 show_list = list_flag)
-        if team_name == LIST or version == "l":
+        if team_name == LIST or team_name == "l":
             list_flag = not list_flag
             current_message = None
-        elif version == CANCEL or version == "c":
+        elif team_name == CANCEL or team_name == "c":
             raise Exception("")
         elif team_name in existing_names:
-            current_message = "Sorry, that team name already exists for this game."
+            current_message = "Sorry, that team name already exists."
         else:
             return team_name
         
@@ -502,7 +511,7 @@ def edit_team(connection: Connection) -> None:
 
 def edit_team_name(connection: Connection, team: Team) -> None:
     title_base = EDIT_TITLE
-    new_team_name = choose_team_name(connection, team.get_version(), title_base)
+    new_team_name = choose_team_name(connection, title_base)
     clear()
     print_heading(title_base)
     try:
