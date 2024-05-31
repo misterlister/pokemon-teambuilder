@@ -1,6 +1,6 @@
 # Pokemon Teambuilder
 
-![Pylint](https://github.com/your-username/your-repository/actions/workflows/pylint.yml/badge.svg)
+![Pylint](https://github.com/misterlister/pokemon-teambuilder/actions/workflows/pylint.yml/badge.svg)
 
 ## What is it?
 
