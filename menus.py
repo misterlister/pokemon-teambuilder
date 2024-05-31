@@ -1,3 +1,7 @@
+"""
+Contains functions dealing user menus.
+"""
+
 from sqlite3 import Connection
 from classes import Pokemon, Team
 from printouts import print_list, print_heading
@@ -94,13 +98,13 @@ def main_menu(connection: Connection) -> None:
 def view_teams(connection: Connection):
     team = team_search(connection, VIEW_TITLE)
     print_team(team)
-    
+
 def print_team(team: Team) -> None:
     if team == None: return
     clear()
     team.printout()
     press_enter()
-    
+
 def team_search(connection: Connection, title_base: str) -> Team:
     existing_teams = get_all_team_names(connection)
     if len(existing_teams) == 0:
@@ -166,7 +170,7 @@ def team_search_player(connection: Connection, title_base: str) -> None:
             return team
         else:
             current_message = f"Sorry, there are no teams for '{chosen_player}'."
-                
+
 def choose_team_by_player(connection: Connection, player: str, title_base: str) -> None:
     list_flag = True
     current_message = None
@@ -193,7 +197,7 @@ def choose_team_by_player(connection: Connection, player: str, title_base: str) 
             return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for player '{player}'."
-    
+
 def team_search_version(connection: Connection, title_base: str) -> None:
     list_flag = True
     current_message = None
@@ -224,7 +228,7 @@ def team_search_version(connection: Connection, title_base: str) -> None:
             return team
         else:
             current_message = f"Sorry, there are no teams for '{chosen_version}'."
-            
+
 def choose_team_by_version(connection: Connection, version: str, title_base: str) -> None:
     list_flag = True
     current_message = None
@@ -251,7 +255,7 @@ def choose_team_by_version(connection: Connection, version: str, title_base: str
             return team
         else:
             current_message = f"Sorry, there is no team called '{chosen_team}' for '{version}' version."
-            
+
 def import_team(connection: Connection, team_name: str):
     try:
         team = get_team_from_db(connection, team_name)
@@ -260,36 +264,35 @@ def import_team(connection: Connection, team_name: str):
         print(e)
         press_enter()
         return None
-    
-    
+
 def create_team(connection: Connection) -> None:
     new_team = Team()
     title_base = CREATE_TITLE
     try:
         player_name = get_player_name(connection)
         new_team.set_player_name(player_name)
-        
+
         version = choose_version()
         new_team.set_version(version)
-        
+
         team_name = choose_team_name(connection, title_base)
         new_team.set_team_name(team_name)
-        
+
         team_list = choose_team_pokemon(version, title_base)
         assign_pokemon(new_team, team_list)
-        
+
         select_team_movesets(new_team)
-        
+
         clear()
         print_heading(title_base)    
         new_team.printout()
-        
+
         add_team(connection, new_team)
         press_enter()
-        
+
     except Exception as e:
         print(e)
-    
+
 def get_player_name(connection: Connection) -> str:
     list_flag = True
     existing_names = get_player_names(connection)
@@ -309,7 +312,7 @@ def get_player_name(connection: Connection) -> str:
             raise Exception("")
         else:
             return player_name
-    
+
 def choose_version() -> str:
     list_flag = True
     current_message = None
@@ -335,7 +338,7 @@ def choose_version() -> str:
             return version
         else:
             current_message = f"Sorry, '{version}' is not a valid Pokemon game version."
-    
+
 def choose_team_name(connection: Connection, title_base: str) -> str:
     list_flag = True
     current_message = None
@@ -360,7 +363,7 @@ def choose_team_name(connection: Connection, title_base: str) -> str:
             current_message = "Sorry, that team name already exists."
         else:
             return team_name
-        
+
 def choose_team_pokemon(version: str, title_base: str):
     try:
         team_list = []
@@ -377,8 +380,8 @@ def choose_team_pokemon(version: str, title_base: str):
         press_enter()
         return team_list
     except Exception as e:
-        raise(e)
-            
+        raise e
+
 def choose_pokemon(version: str, slot: int, title_base: str, team_list: list, current_message: str = None) -> tuple:
     full_title = f"{title_base} - Choose Pokemon"
     available_pokemon = get_all_pokemon_in_dex(version)
@@ -425,8 +428,8 @@ def select_team_movesets(team: Team) -> None:
             press_enter()
         return
     except Exception as e:
-        raise(e)
-    
+        raise e
+
 def select_moveset(version: str, pokemon: Pokemon, title_base: str) -> bool:
     try:
         message = None
@@ -437,9 +440,8 @@ def select_moveset(version: str, pokemon: Pokemon, title_base: str) -> bool:
             still_adding, message = select_move(version, pokemon, i, title_base, message, available_moves)
             if not still_adding: break
     except Exception as e:
-        raise(e)   
-    
-    
+        raise e   
+
 def select_move(version: str, pokemon: Pokemon, moveslot: int, title_base: str, current_message: str = None, available_moves: list = None) -> tuple:
     list_flag = True
     name = pokemon.get_species()
@@ -474,7 +476,7 @@ def select_move(version: str, pokemon: Pokemon, moveslot: int, title_base: str, 
             return True, current_message
         else:
             current_message = f"Sorry, '{selected_move}' is not a valid move to select."
-    
+
 def edit_team(connection: Connection) -> None:
     try:
         title_base = EDIT_TITLE
@@ -543,7 +545,7 @@ def edit_pokemon_moves(connection: Connection, team: Team) -> None:
             return
         else:
             current_message = INVALID
-            
+
 def select_pokemon_from_team(team: Team, title_base: str) -> Pokemon:
     clear()
     print_heading(title_base)
@@ -554,7 +556,7 @@ def select_pokemon_from_team(team: Team, title_base: str) -> Pokemon:
     slot = select_number(1, team_size, f"Please select the pokemon (Between 1 and {team_size}): ")
     pokemon = team.get_pokemon_in_slot(slot)
     return pokemon
-            
+
 def edit_one_move(connection: Connection, pokemon: Pokemon, team: Team, title_base: str):
     title = f"{title_base} - Change Move"
     clear()
@@ -581,13 +583,13 @@ def edit_one_move(connection: Connection, pokemon: Pokemon, team: Team, title_ba
         clear()
         print_heading(title)
         print(f"Changed move successfully!")
-        
+
     except Exception as e:
         if e.args[0] == "":
-            raise(e)
+            raise e
         print(e)
     press_enter()
-    
+
 def edit_all_moves(connection: Connection, pokemon: Pokemon, team: Team, title_base: str):
     clear()
     title = f"{title_base} - Change Moveset"
@@ -605,10 +607,10 @@ def edit_all_moves(connection: Connection, pokemon: Pokemon, team: Team, title_b
         clear()
         print_heading(title)
         print(f"Changed moveset successfully!")
-        
+
     except Exception as e:
         if e.args[0] == "":
-            raise(e)
+            raise e
         print(e)
     press_enter()
 
@@ -631,13 +633,13 @@ def edit_team_pokemon(connection: Connection, team: Team) -> None:
         clear()
         print_list(replacement.get_all_moves(), f"{replacement.get_species()}'s moveset:")
         press_enter()
-        
+
         update_pokemon_slot(connection, team.get_team_id(), replacement, slot)
         team.swap_pokemon(replacement, slot)
         clear()
         print_heading(f"{title_base} - Change Pokemon")
         print(f"Swapped {replacement.get_species()} into slot {slot} successfully!")
-        
+
     except Exception as e:
         print(e)
     press_enter()

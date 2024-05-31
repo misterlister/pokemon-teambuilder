@@ -1,3 +1,7 @@
+"""
+Contains functions dealing with interacting with the pokeapi API.
+"""
+
 import requests
 from constants import (
     BASEURL,
@@ -15,12 +19,11 @@ def get_all_version_names() -> list:
     if version_names != None:
         version_names.append("other")
     return version_names
-    
-    
+
 def get_all_version_names_r(url: str) -> list:
     response = requests.get(url)
     version_names = []
-    
+
     if response.status_code == 200:
         data = response.json()
         versions = data["results"]
@@ -31,7 +34,7 @@ def get_all_version_names_r(url: str) -> list:
     else:
         print(f"Failed to fetch data: {response.status_code}")
         return None
-        
+
 def get_all_pokemon_in_dex(version: str) -> list:
     if version == "other":
         pokedex_url = f"{BASEURL}pokedex/1"
@@ -43,9 +46,9 @@ def get_all_pokemon_in_dex(version: str) -> list:
         pokedex_url = get_pokedex_url(version)
         if pokedex_url == None:
             return None
-        
+
     response = requests.get(pokedex_url)    
-            
+
     if response.status_code == 200:
         data = response.json()
         pokedex = data["pokemon_entries"]
@@ -53,12 +56,12 @@ def get_all_pokemon_in_dex(version: str) -> list:
         return pokemon_list
     else:
         print(f"Failed to fetch data: {response.status_code}")
-        
+
 def get_pokedex_url(version: str) -> str:
     version_group = get_version_group(version)
     if version_group == None:
         return None
-    
+
     response = requests.get(f"{BASEURL}version-group/{version_group}")
 
     if response.status_code == 200:
@@ -68,14 +71,14 @@ def get_pokedex_url(version: str) -> str:
     else:
         print(f"Failed to fetch data: {response.status_code}")
         return None
-        
+
 def get_pokemon_moves(version: str, name: str) -> list:
     version_group = get_version_group(version)
     if version_group is None:
         return None
     url = f"{BASEURL}pokemon/{name}"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         moves = data["moves"]
@@ -85,11 +88,11 @@ def get_pokemon_moves(version: str, name: str) -> list:
         return move_list
     else:
         print(f"Failed to fetch data: {response.status_code}")
-    
+
 def get_version_group(version: str) -> str:
     url = f"{BASEURL}version/{version}"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         version_group = data["version_group"]["name"]
@@ -97,13 +100,13 @@ def get_version_group(version: str) -> str:
     else:
         print(f"Failed to fetch data: {response.status_code}")
         return None
-    
+
 def add_move_by_version(movelist: list, move: str, version_group: str) -> None:
     move_name = move["move"]["name"]
     if move_version_is_valid(move["version_group_details"], version_group):
         movelist.append(move_name)
     return
-    
+
 def move_version_is_valid(move_version_groups: list, version_group: str) -> bool:
     for entry in move_version_groups:
         if entry["version_group"]["name"] == version_group:
@@ -114,7 +117,7 @@ def get_version_generation(version: str) -> int:
     version_group = get_version_group(version)
     url = f"{BASEURL}version-group/{version_group}"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         generation = data["generation"]["name"]
@@ -123,17 +126,17 @@ def get_version_generation(version: str) -> int:
     else:
         print(f"Failed to fetch data: {response.status_code}")
         return None
-    
+
 def get_all_types(version: str) -> list:
     gen_num = get_version_generation(version)
     url = f"{BASEURL}type"
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         type_data = data["results"]
         types = [type["name"] for type in type_data]
-        
+
         types.remove("unknown")
         if gen_num < 9:
             types.remove("stellar")

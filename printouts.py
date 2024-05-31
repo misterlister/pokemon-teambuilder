@@ -1,14 +1,18 @@
+"""
+Contains functions dealing with printing out formatted information.
+"""
+
 from constants import BORDER, WIDTH, INNER_WIDTH
 
 def print_title(title: str) -> None:
     print(BORDER * WIDTH)
     print(title.center(WIDTH))
     print(BORDER * WIDTH)
-    
+
 def print_list(list: list, heading: str = None, border: bool = False) -> None:
     if heading:
         print_heading(heading)
-    
+
     max_size = 1
     buffer = "  "
     if len(list) == 0:
@@ -32,11 +36,11 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
             value = "None"
         else:
             value = list[i]
-        print(f"{value.ljust(max_size, " ")}{buffer}", end="")
+        print(f"{value.ljust(max_size)}{buffer}", end="")
     if border:
         print("\n\t" + list_border)
     else:
         print("")
-    
+
 def print_heading(heading: str) -> None:
     print("\n" + heading.center(WIDTH, BORDER))

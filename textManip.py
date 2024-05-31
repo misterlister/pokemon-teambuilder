@@ -1,3 +1,7 @@
+"""
+Contains functions dealing with adjusting inputted text.
+"""
+
 from os import system, name
 
 def convert_generation_to_num(generation: str) -> int:
@@ -42,7 +46,7 @@ def get_close_string(orig_string, string_list):
             if string_len > 0:
                 i = 0
                 match_count = 0
-                
+
                 for j in range (string_len):
                     matched = False
                     if i >= orig_len: break
@@ -60,7 +64,7 @@ def get_close_string(orig_string, string_list):
                             matched = True
                     if matched: match_count += 1
                     else: i += 1
-                            
+
                 if match_count > max_matches:
                     max_matches = match_count
                     closest_match = string
@@ -84,7 +88,7 @@ def confirm(question):
         if response == "no" or response == 'n':
             return False
         print("Invalid response, please try again.")
-        
+
 def select_number(low, high, question):
     valid = False
     while not valid:
@@ -94,15 +98,15 @@ def select_number(low, high, question):
             if input_num >= low and input_num <= high:
                 return input_num
         print(f"Please enter a number between {low} and {high}")
-        
+
 def press_enter() -> None:
     input("\nPress Enter to continue\n")
-    
+
 def clear():
     # for windows
     if name == 'nt':
         _ = system('cls')
-        
+
     # for mac and linux(here, os.name is 'posix')
     else:
         _ = system('clear')

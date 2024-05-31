@@ -1,3 +1,7 @@
+"""
+Contains constants for the pokemon-teambuilder application.
+"""
+
 BORDER = "-"
 WIDTH = 96
 INNER_WIDTH = WIDTH - 8

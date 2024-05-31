@@ -1,10 +1,14 @@
+"""
+Contains constant docstrings for creation of sql tables.
+"""
+
 CREATE_PLAYER_TABLE = """
     CREATE TABLE IF NOT EXISTS players (
         player_id INTEGER PRIMARY KEY AUTOINCREMENT,
         player_name TEXT NOT NULL UNIQUE
     )
     """
-    
+
 CREATE_POKEMON_TABLE = """
     CREATE TABLE IF NOT EXISTS pokemon (
         pokemon_id INTEGER PRIMARY KEY AUTOINCREMENT,

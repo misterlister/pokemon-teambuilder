@@ -4,7 +4,6 @@ from printouts import print_title
 from constants import GREETING, GOODBYE
 from textManip import press_enter, clear
 
-
 if __name__ == "__main__":
     connection = init_database()
     clear()

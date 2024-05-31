@@ -1,3 +1,7 @@
+"""
+Contains functions dealing with interactions with the sqlite3 database.
+"""
+
 from classes import Pokemon, Team, DatabaseInsertionError
 import sqlite3
 from sqlstatements import (
@@ -53,14 +57,14 @@ def get_player_id_from_name(connection: sqlite3.Connection, player_name: str) ->
         return result[0]
     else:
         return None
-    
+
 def get_existing_versions(connection: sqlite3.Connection) -> list:
     cursor = connection.cursor()
     cursor.execute("SELECT DISTINCT version FROM teams")
     versions = cursor.fetchall()
     version_list = [version[0] for version in versions]
     return version_list
-    
+
 def add_player(connection: sqlite3.Connection, player_name: str) -> int:
     cursor = connection.cursor()
     cursor.execute("INSERT OR IGNORE INTO players (player_name) VALUES (?)", (player_name,))
@@ -79,7 +83,7 @@ def add_pokemon(connection: sqlite3.Connection, pokemon: Pokemon) -> int:
                     pokemon.get_move_in_slot(2),
                     pokemon.get_move_in_slot(3),
                     pokemon.get_move_in_slot(4)))
-    
+
     if cursor.lastrowid == 0:
         connection.rollback()
         raise DatabaseInsertionError(f"Failed to insert Pokémon: {pokemon.get_species()}")
@@ -102,7 +106,7 @@ def add_team(connection: sqlite3.Connection, new_team: Team) -> int:
             print(e)
     while len(pokemon_ids) < 6:
         pokemon_ids.append(None)
-        
+
     cursor.execute("""
                    INSERT INTO teams 
                    (player_id, team_name, version, 
@@ -111,7 +115,7 @@ def add_team(connection: sqlite3.Connection, new_team: Team) -> int:
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                    """,
                    (player_id, team_name, new_team.get_version(), *pokemon_ids))
-    
+
     if cursor.lastrowid == 0:
         connection.rollback()
         raise DatabaseInsertionError(f"Failed to insert Team: {team_name}")
@@ -138,7 +142,7 @@ def get_team_from_db(connection: sqlite3.Connection, team_name: int) -> Team:
         version = row[2]
         pokemon_ids = row[3:9]
         team_id = row[9]
-        
+
         pokemon_list = [extract_pokemon(connection, pid) if pid else None for pid in pokemon_ids]
         team = Team(player_name, team_name, version,
                     pokemon_list[0], pokemon_list[1], pokemon_list[2],
@@ -162,16 +166,15 @@ def extract_pokemon(connection: sqlite3.Connection, pokemon_id: int) -> Pokemon:
 
 def remove_pokemon(connection: sqlite3.Connection, pokemon_id: int):
     cursor = connection.cursor()
-    
+
     if pokemon_id is not None:
-        
+
         cursor.execute("""
                         DELETE FROM pokemon
                         WHERE pokemon_id = ?
                         """, (pokemon_id,))
-        
+
         connection.commit()
-    
 
 def get_pokemon_id_in_slot(connection: sqlite3.Connection, team_id: int, slot: int) -> int:
     cursor = connection.cursor()
@@ -182,7 +185,7 @@ def get_pokemon_id_in_slot(connection: sqlite3.Connection, team_id: int, slot: i
                    WHERE team_id = ?
                    """, (team_id,))
     pokemon_id = cursor.fetchone()
-    
+
     if pokemon_id:
         return pokemon_id[0]
     return None
@@ -200,7 +203,7 @@ def update_team_name(connection: sqlite3.Connection, team_id: int, new_team_name
     except sqlite3.Error as e:
         connection.rollback()
         raise e
-    
+
 def update_pokemon_slot(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, slot: int):
     try:
         cursor = connection.cursor()
@@ -210,33 +213,33 @@ def update_pokemon_slot(connection: sqlite3.Connection, team_id: int, pokemon: P
         old_id = get_pokemon_id_in_slot(connection, team_id, slot)
         if old_id:
             remove_pokemon(connection, old_id)
-        
+
         cursor.execute(f"""
                     UPDATE teams
                     SET {slot_column} = ?
                     WHERE team_id = ?
                     """, 
                     (new_id, team_id))
-        
+
         connection.commit()
     except sqlite3.Error as e:
         connection.rollback()
         raise e
-    
+
 def update_single_move(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, pokemon_slot: int, moveslot: int):
     try:
         cursor = connection.cursor()
-        
+
         moveslot_column = f"move{moveslot}"
         pokemon_id = get_pokemon_id_in_slot(connection, team_id, pokemon_slot)
-        
+
         cursor.execute(f"""
                     UPDATE pokemon
                     SET {moveslot_column} = ?
                     WHERE pokemon_id = ?
                     """, 
                     (pokemon.get_move_in_slot(moveslot), pokemon_id))
-        
+
         connection.commit()
     except sqlite3.Error as e:
         connection.rollback()
@@ -245,9 +248,9 @@ def update_single_move(connection: sqlite3.Connection, team_id: int, pokemon: Po
 def update_moveset(connection: sqlite3.Connection, team_id: int, pokemon: Pokemon, pokemon_slot: int):
     try:
         cursor = connection.cursor()
-        
+
         pokemon_id = get_pokemon_id_in_slot(connection, team_id, pokemon_slot)
-        
+
         cursor.execute(f"""
                     UPDATE pokemon
                     SET move1 = ?, move2 = ?, move3 = ?, move4 = ?
@@ -258,7 +261,7 @@ def update_moveset(connection: sqlite3.Connection, team_id: int, pokemon: Pokemo
                      pokemon.get_move_in_slot(3),
                      pokemon.get_move_in_slot(4),
                      pokemon_id))
-        
+
         connection.commit()
     except sqlite3.Error as e:
         connection.rollback()
