@@ -9,7 +9,7 @@ def print_title(title: str) -> None:
     print(title.center(WIDTH))
     print(BORDER * WIDTH)
 
-def print_list(list: list, heading: str = None, border: bool = False) -> None:
+def printout_list(list: list, heading: str = None, border: bool = False) -> None:
     if heading:
         print_heading(heading)
 
@@ -19,8 +19,9 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
         print("No data exists\n")
         return
     for item in list:
-        if item == None:
-            if 4 > max_size: max_size = 5
+        if item is None:
+            if 4 > max_size: 
+                max_size = 5
         elif len(item) > max_size:
             max_size = len(item)
     max_size += len(buffer)
@@ -32,15 +33,15 @@ def print_list(list: list, heading: str = None, border: bool = False) -> None:
     for i in range(len(list)):
         if i % items_per_line == 0 and i != 0:
             print("\n\t", end="")
-        if list[i] == None:
+        if list[i] is None:
             value = "None"
         else:
             value = list[i]
         print(f"{value.ljust(max_size)}{buffer}", end="")
     if border:
         print("\n\t" + list_border)
-    else:
-        print("")
+        return
+    print("")
 
 def print_heading(heading: str) -> None:
     print("\n" + heading.center(WIDTH, BORDER))

@@ -4,18 +4,15 @@ Contains unittests for various functions in the application.
 
 import unittest
 
-from textManip import (
-    get_close_string
-)
-
-from apiInteraction import (
+from api_interaction import (
     get_pokemon_moves,
     get_version_group,
     get_all_types,
 )
 
-from textManip import (
-    convert_generation_to_num
+from text_manip import (
+    convert_generation_to_num,
+    get_close_string
 )
 
 class Tests(unittest.TestCase):
@@ -108,7 +105,7 @@ class Tests(unittest.TestCase):
         close_string = get_close_string(string, string_list)
         self.assertEqual(
             close_string, None
-        ) 
+        )
 
     def test_get_close_string_5(self):
         string = "zapcannon"
@@ -116,49 +113,49 @@ class Tests(unittest.TestCase):
         close_string = get_close_string(string, string_list)
         self.assertEqual(
             close_string, "zap-cannon"
-        ) 
+        )
 
     def test_convert_gen_to_num_1(self):
         gen = "generation-i"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 1
-        ) 
+        )
 
     def test_convert_gen_to_num_3(self):
         gen = "generation-iii"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 3
-        ) 
+        )
 
     def test_convert_gen_to_num_4(self):
         gen = "generation-iv"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 4
-        ) 
+        )
 
     def test_convert_gen_to_num_6(self):
         gen = "generation-vi"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 6
-        ) 
+        )
 
     def test_convert_gen_to_num_9(self):
         gen = "generation-ix"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 9
-        ) 
+        )
 
     def test_convert_gen_to_num_11(self):
         gen = "generation-xi"
         num = convert_generation_to_num(gen)
         self.assertEqual(
             num, 11
-        ) 
+        )
 
     def test_get_all_types_gen1(self):
         version = "red"
