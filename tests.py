@@ -1,18 +1,14 @@
 import unittest
 
-from editTeams import (
+from textManip import (
     get_close_string
 )
 
 from apiInteraction import (
-    get_all_version_names,
-    get_all_pokemon_in_dex,
-    get_pokedex_url,
     get_pokemon_moves,
     get_version_group,
-    add_move_by_version,
-    move_version_is_valid,
-    get_all_types
+    get_all_types,
+    
 )
 
 from textManip import (
