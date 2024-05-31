@@ -22,6 +22,13 @@ def get_player_names(connection: sqlite3.Connection) -> list:
     player_list = [name[0] for name in player_names]
     return player_list
 
+def get_all_team_names(connection: sqlite3.Connection) -> list:
+    cursor = connection.cursor()
+    cursor.execute("SELECT team_name FROM teams")
+    team_names = cursor.fetchall()
+    team_list = [name[0] for name in team_names]
+    return team_list
+
 def get_team_names_from_version(connection: sqlite3.Connection, version: str) -> list:
     cursor = connection.cursor()
     cursor.execute("SELECT team_name FROM teams WHERE version = ?", (version,))
@@ -114,46 +121,23 @@ def add_team(connection: sqlite3.Connection, new_team: Team) -> int:
     print(f"Added team {team_name} to database successfully!")
     return team_id
 
-def get_team_id_from_player(connection: sqlite3.Connection, team: str, player: str) -> int:
-    cursor = connection.cursor()
-    cursor.execute("""
-                   SELECT team_id FROM teams
-                   JOIN players on teams.player_id = players.player_id
-                   WHERE team_name = ? AND player_name = ?
-                   """,(team, player))
-    row = cursor.fetchone()
-    if row:
-        return row[0]
-    return None
-
-def get_team_id_from_version(connection: sqlite3.Connection, team: str, version: str) -> int:
-    cursor = connection.cursor()
-    cursor.execute("""
-                   SELECT team_id FROM teams
-                   WHERE team_name = ? AND version = ?
-                   """,(team, version))
-    row = cursor.fetchone()
-    if row:
-        return row[0]
-    return None
-    
-
-def get_team_from_db(connection: sqlite3.Connection, team_id: int) -> Team:
+def get_team_from_db(connection: sqlite3.Connection, team_name: int) -> Team:
     cursor = connection.cursor()
     cursor.execute("""
                    SELECT player_name, team_name, version, 
                    pokemon1, pokemon2, pokemon3,
-                   pokemon4, pokemon5, pokemon6
+                   pokemon4, pokemon5, pokemon6, team_id
                    FROM teams
                    JOIN players on teams.player_id = players.player_id
-                   WHERE team_id = ?
-                   """,(team_id,))
+                   WHERE team_name = ?
+                   """,(team_name,))
     row = cursor.fetchone()
     if row:
         player_name = row[0]
         team_name = row[1]
         version = row[2]
         pokemon_ids = row[3:9]
+        team_id = row[9]
         
         pokemon_list = [extract_pokemon(connection, pid) if pid else None for pid in pokemon_ids]
         team = Team(player_name, team_name, version,
